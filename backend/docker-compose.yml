@@ -1,0 +1,39 @@
+# Base de datos local de desarrollo con la misma versión mayor de PostgreSQL que Supabase
+services:
+  db:
+    image: postgres:17
+    container_name: manual-vivo-db
+    environment:
+      POSTGRES_PASSWORD: mv_dev_2026
+      POSTGRES_DB: manual_vivo
+      TZ: America/Santiago
+      PGTZ: America/Santiago
+    ports:
+      - "55432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d manual_vivo"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Opcional: prueba la imagen de Render en local con docker compose --profile api up --build
+  api:
+    profiles: ["api"]
+    build: .
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: postgresql://postgres:mv_dev_2026@db:5432/manual_vivo
+      DIRECT_URL: postgresql://postgres:mv_dev_2026@db:5432/manual_vivo
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:
