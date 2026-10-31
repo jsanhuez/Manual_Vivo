@@ -1,0 +1,260 @@
+// Generado por introspección de la migración 0_init y refinado con @map y @@map sin cambiar la base
+// CHECK, triggers, vistas, RLS e índices de texto completo viven en migrations/0_init/migration.sql
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum RecordStatus {
+  ACTIVE
+  ARCHIVED
+
+  @@map("record_status")
+}
+
+enum VersionStatus {
+  DRAFT
+  IN_REVIEW
+  PUBLISHED
+  REJECTED
+
+  @@map("version_status")
+}
+
+enum RelationType {
+  INFORMATION_HANDOFF
+  TRIGGERS
+  DEPENDS_ON
+
+  @@map("relation_type")
+}
+
+model Role {
+  id          Int     @id(map: "pk_roles") @default(autoincrement()) @db.SmallInt
+  name        String  @unique(map: "uq_roles_name") @db.VarChar(30)
+  description String? @db.VarChar(150)
+  users       User[]
+
+  @@map("roles")
+}
+
+model AccessLevel {
+  id          Int         @id(map: "pk_access_levels") @default(autoincrement()) @db.SmallInt
+  name        String      @unique(map: "uq_access_levels_name") @db.VarChar(40)
+  level       Int         @unique(map: "uq_access_levels_level") @db.SmallInt
+  description String?     @db.VarChar(150)
+  users       User[]
+  processes   Process[]
+  procedures  Procedure[]
+
+  @@map("access_levels")
+}
+
+model Area {
+  id                Int                 @id(map: "pk_areas") @default(autoincrement()) @db.SmallInt
+  name              String              @unique(map: "uq_areas_name") @db.VarChar(60)
+  description       String?             @db.VarChar(200)
+  isActive          Boolean             @default(true) @map("is_active")
+  users             User[]
+  processes         Process[]
+  processVisibility ProcessVisibility[]
+  onboardingRoutes  OnboardingRoute[]
+
+  @@map("areas")
+}
+
+model User {
+  id                String             @id(map: "pk_users") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  areaId            Int                @map("area_id") @db.SmallInt
+  roleId            Int                @map("role_id") @db.SmallInt
+  accessLevelId     Int                @map("access_level_id") @db.SmallInt
+  firstName         String             @map("first_name") @db.VarChar(60)
+  lastName          String             @map("last_name") @db.VarChar(60)
+  email             String             @unique(map: "uq_users_email") @db.VarChar(120)
+  passwordHash      String?            @map("password_hash") @db.VarChar(255)
+  jobTitle          String?            @map("job_title") @db.VarChar(80)
+  hireDate          DateTime           @map("hire_date") @db.Date
+  isActive          Boolean            @default(true) @map("is_active")
+  lastLoginAt       DateTime?          @map("last_login_at") @db.Timestamptz(6)
+  area              Area               @relation(fields: [areaId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_area")
+  role              Role               @relation(fields: [roleId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_role")
+  accessLevel       AccessLevel        @relation(fields: [accessLevelId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_access_level")
+  ownedProcesses    Process[]
+  authoredVersions  ProcedureVersion[] @relation("VersionAuthor")
+  reviewedVersions  ProcedureVersion[] @relation("VersionReviewer")
+  createdRoutes     OnboardingRoute[]
+  routeAssignments  RouteAssignment[]
+  readConfirmations ReadConfirmation[]
+  auditLogs         AuditLog[]
+
+  @@index([areaId], map: "ix_users_area")
+  @@map("users")
+}
+
+model Process {
+  id                Int                 @id(map: "pk_processes") @default(autoincrement())
+  areaId            Int                 @map("area_id") @db.SmallInt
+  ownerId           String              @map("owner_id") @db.Uuid
+  accessLevelId     Int                 @map("access_level_id") @db.SmallInt
+  code              String              @unique(map: "uq_processes_code") @db.VarChar(15)
+  name              String              @db.VarChar(120)
+  objective         String
+  scope             String?
+  isCrossArea       Boolean             @default(false) @map("is_cross_area")
+  status            RecordStatus        @default(ACTIVE)
+  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime            @default(now()) @map("updated_at") @db.Timestamptz(6)
+  area              Area                @relation(fields: [areaId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_processes_area")
+  owner             User                @relation(fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_processes_owner")
+  accessLevel       AccessLevel         @relation(fields: [accessLevelId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_processes_access_level")
+  visibility        ProcessVisibility[]
+  outgoingRelations ProcessRelation[]   @relation("RelationSource")
+  incomingRelations ProcessRelation[]   @relation("RelationTarget")
+  procedures        Procedure[]
+
+  @@index([areaId], map: "ix_processes_area")
+  @@map("processes")
+}
+
+model ProcessVisibility {
+  processId Int      @map("process_id")
+  areaId    Int      @map("area_id") @db.SmallInt
+  grantedAt DateTime @default(now()) @map("granted_at") @db.Timestamptz(6)
+  process   Process  @relation(fields: [processId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_process_visibility_process")
+  area      Area     @relation(fields: [areaId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_process_visibility_area")
+
+  @@id([processId, areaId], map: "pk_process_visibility")
+  @@index([areaId], map: "ix_process_visibility_area")
+  @@map("process_visibility")
+}
+
+model ProcessRelation {
+  id              Int          @id(map: "pk_process_relations") @default(autoincrement())
+  sourceProcessId Int          @map("source_process_id")
+  targetProcessId Int          @map("target_process_id")
+  relationType    RelationType @map("relation_type")
+  description     String?      @db.VarChar(250)
+  source          Process      @relation("RelationSource", fields: [sourceProcessId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_process_relations_source")
+  target          Process      @relation("RelationTarget", fields: [targetProcessId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_process_relations_target")
+
+  @@unique([sourceProcessId, targetProcessId, relationType], map: "uq_process_relations")
+  @@index([targetProcessId], map: "ix_process_relations_target")
+  @@map("process_relations")
+}
+
+model Procedure {
+  id            Int                @id(map: "pk_procedures") @default(autoincrement())
+  processId     Int                @map("process_id")
+  accessLevelId Int                @map("access_level_id") @db.SmallInt
+  code          String             @unique(map: "uq_procedures_code") @db.VarChar(20)
+  title         String             @db.VarChar(150)
+  sortOrder     Int                @map("sort_order") @db.SmallInt
+  status        RecordStatus       @default(ACTIVE)
+  createdAt     DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  process       Process            @relation(fields: [processId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_procedures_process")
+  accessLevel   AccessLevel        @relation(fields: [accessLevelId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_procedures_access_level")
+  versions      ProcedureVersion[]
+  routeSteps    RouteStep[]
+
+  @@index([processId, sortOrder], map: "ix_procedures_process")
+  @@map("procedures")
+}
+
+model ProcedureVersion {
+  id                Int                @id(map: "pk_procedure_versions") @default(autoincrement())
+  procedureId       Int                @map("procedure_id")
+  authorId          String             @map("author_id") @db.Uuid
+  reviewerId        String?            @map("reviewer_id") @db.Uuid
+  versionNumber     Int                @map("version_number") @db.SmallInt
+  content           String
+  changeSummary     String             @map("change_summary") @db.VarChar(300)
+  status            VersionStatus      @default(DRAFT)
+  reviewNotes       String?            @map("review_notes") @db.VarChar(500)
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  publishedAt       DateTime?          @map("published_at") @db.Timestamptz(6)
+  procedure         Procedure          @relation(fields: [procedureId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_procedure_versions_procedure")
+  author            User               @relation("VersionAuthor", fields: [authorId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_procedure_versions_author")
+  reviewer          User?              @relation("VersionReviewer", fields: [reviewerId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_procedure_versions_reviewer")
+  readConfirmations ReadConfirmation[]
+
+  @@unique([procedureId, versionNumber], map: "uq_procedure_versions_number")
+  @@index([procedureId, status, versionNumber(sort: Desc)], map: "ix_versions_procedure_status")
+  @@map("procedure_versions")
+}
+
+model OnboardingRoute {
+  id          Int               @id(map: "pk_onboarding_routes") @default(autoincrement())
+  areaId      Int?              @map("area_id") @db.SmallInt
+  createdBy   String            @map("created_by") @db.Uuid
+  name        String            @unique(map: "uq_onboarding_routes_name") @db.VarChar(100)
+  description String?           @db.VarChar(300)
+  isActive    Boolean           @default(true) @map("is_active")
+  createdAt   DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  area        Area?             @relation(fields: [areaId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_onboarding_routes_area")
+  creator     User              @relation(fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_onboarding_routes_creator")
+  steps       RouteStep[]
+  assignments RouteAssignment[]
+
+  @@map("onboarding_routes")
+}
+
+model RouteStep {
+  routeId     Int             @map("route_id")
+  procedureId Int             @map("procedure_id")
+  stepOrder   Int             @map("step_order") @db.SmallInt
+  isRequired  Boolean         @default(true) @map("is_required")
+  route       OnboardingRoute @relation(fields: [routeId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_route_steps_route")
+  procedure   Procedure       @relation(fields: [procedureId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_route_steps_procedure")
+
+  @@id([routeId, procedureId], map: "pk_route_steps")
+  @@unique([routeId, stepOrder], map: "uq_route_steps_order")
+  @@index([procedureId], map: "ix_route_steps_procedure")
+  @@map("route_steps")
+}
+
+model RouteAssignment {
+  routeId    Int             @map("route_id")
+  userId     String          @map("user_id") @db.Uuid
+  assignedAt DateTime        @default(dbgenerated("CURRENT_DATE")) @map("assigned_at") @db.Date
+  dueDate    DateTime?       @map("due_date") @db.Date
+  route      OnboardingRoute @relation(fields: [routeId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_route_assignments_route")
+  user       User            @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_route_assignments_user")
+
+  @@id([routeId, userId], map: "pk_route_assignments")
+  @@index([userId], map: "ix_route_assignments_user")
+  @@map("route_assignments")
+}
+
+model ReadConfirmation {
+  userId      String           @map("user_id") @db.Uuid
+  versionId   Int              @map("version_id")
+  confirmedAt DateTime         @default(now()) @map("confirmed_at") @db.Timestamptz(6)
+  user        User             @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_read_confirmations_user")
+  version     ProcedureVersion @relation(fields: [versionId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_read_confirmations_version")
+
+  @@id([userId, versionId], map: "pk_read_confirmations")
+  @@index([versionId], map: "ix_read_confirmations_version")
+  @@map("read_confirmations")
+}
+
+model AuditLog {
+  id        BigInt   @id(map: "pk_audit_logs") @default(autoincrement())
+  userId    String?  @map("user_id") @db.Uuid
+  action    String   @db.VarChar(40)
+  entity    String   @db.VarChar(40)
+  entityId  String?  @map("entity_id") @db.VarChar(40)
+  details   Json?
+  ipAddress String?  @map("ip_address") @db.Inet
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user      User?    @relation(fields: [userId], references: [id], onUpdate: NoAction, map: "fk_audit_logs_user")
+
+  @@index([createdAt(sort: Desc)], map: "ix_audit_logs_created_at")
+  @@index([userId, createdAt(sort: Desc)], map: "ix_audit_logs_user")
+  @@map("audit_logs")
+}
