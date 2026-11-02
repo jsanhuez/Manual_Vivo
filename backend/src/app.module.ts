@@ -4,6 +4,8 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuditModule } from './audit/audit.module';
+import { AuthModule } from './auth/auth.module';
+import { SESSION_TTL_SECONDS } from './auth/auth.service';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { PrismaExceptionFilter } from './common/prisma-exception.filter';
@@ -24,12 +26,13 @@ import { PrismaModule } from './prisma/prisma.module';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         secret: config.getOrThrow<string>('JWT_SECRET'),
-        signOptions: { expiresIn: 8 * 60 * 60 },
+        signOptions: { expiresIn: SESSION_TTL_SECONDS },
       }),
     }),
     PrismaModule,
     AuditModule,
     MailModule,
+    AuthModule,
   ],
   controllers: [HealthController],
   providers: [
