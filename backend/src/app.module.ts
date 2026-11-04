@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { AccessModule } from './access/access.module';
 import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
 import { SESSION_TTL_SECONDS } from './auth/auth.service';
@@ -34,6 +35,7 @@ import { UsersModule } from './users/users.module';
     PrismaModule,
     AuditModule,
     MailModule,
+    AccessModule,
     AuthModule,
     UsersModule,
     CatalogModule,
