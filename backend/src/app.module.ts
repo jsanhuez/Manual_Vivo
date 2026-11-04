@@ -6,6 +6,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
 import { SESSION_TTL_SECONDS } from './auth/auth.service';
+import { CatalogModule } from './catalog/catalog.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { PrismaExceptionFilter } from './common/prisma-exception.filter';
@@ -13,6 +14,7 @@ import { validateEnv } from './config/env.validation';
 import { HealthController } from './health.controller';
 import { MailModule } from './mail/mail.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -33,6 +35,8 @@ import { PrismaModule } from './prisma/prisma.module';
     AuditModule,
     MailModule,
     AuthModule,
+    UsersModule,
+    CatalogModule,
   ],
   controllers: [HealthController],
   providers: [
