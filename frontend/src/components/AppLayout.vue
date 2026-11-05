@@ -23,6 +23,15 @@ const drawerOpen = ref(false);
 
 const sections = computed(() => {
   const list: { title: string; items: NavItem[] }[] = [];
+  if (session.isAdmin) {
+    list.push({
+      title: 'Administración',
+      items: [
+        { key: 'users', label: 'Usuarios', icon: 'users', to: { name: 'users' } },
+        { key: 'areas', label: 'Áreas y niveles', icon: 'layers', to: { name: 'areas' } },
+      ],
+    });
+  }
   list.push({ title: 'Cuenta', items: [{ key: 'profile', label: 'Mi perfil', icon: 'user', to: { name: 'profile' } }] });
   return list;
 });

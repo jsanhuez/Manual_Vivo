@@ -13,6 +13,8 @@ declare module 'vue-router' {
   }
 }
 
+const ADMINS: RoleName[] = ['ADMIN'];
+
 const routes: RouteRecordRaw[] = [
   {
     path: '/ingresar',
@@ -46,6 +48,18 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: '', name: 'home', redirect: { name: 'profile' } },
       { path: 'perfil', name: 'profile', component: () => import('@/views/ProfileView.vue'), meta: { title: 'Mi perfil', nav: 'profile' } },
+      {
+        path: 'admin/usuarios',
+        name: 'users',
+        component: () => import('@/views/admin/UsersView.vue'),
+        meta: { title: 'Usuarios', roles: ADMINS, nav: 'users' },
+      },
+      {
+        path: 'admin/areas',
+        name: 'areas',
+        component: () => import('@/views/admin/AreasLevelsView.vue'),
+        meta: { title: 'Áreas y niveles', roles: ADMINS, nav: 'areas' },
+      },
       { path: 'sin-acceso', name: 'forbidden', component: () => import('@/views/ForbiddenView.vue'), meta: { title: 'Sin acceso' } },
       {
         path: ':pathMatch(.*)*',
