@@ -15,6 +15,7 @@ import { validateEnv } from './config/env.validation';
 import { HealthController } from './health.controller';
 import { MailModule } from './mail/mail.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ProcessesModule } from './processes/processes.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -39,6 +40,7 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     UsersModule,
     CatalogModule,
+    ProcessesModule,
   ],
   controllers: [HealthController],
   providers: [
