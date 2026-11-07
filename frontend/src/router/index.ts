@@ -15,6 +15,8 @@ declare module 'vue-router' {
 
 const ADMINS: RoleName[] = ['ADMIN'];
 
+const numericId = (route: { params: Record<string, unknown> }) => ({ id: Number(route.params.id) });
+
 const routes: RouteRecordRaw[] = [
   {
     path: '/ingresar',
@@ -47,6 +49,26 @@ const routes: RouteRecordRaw[] = [
     component: AppLayout,
     children: [
       { path: '', name: 'home', redirect: { name: 'profile' } },
+      {
+        path: 'conocimiento',
+        name: 'knowledge',
+        component: () => import('@/views/knowledge/KnowledgeBaseView.vue'),
+        meta: { title: 'Base de conocimiento', nav: 'knowledge' },
+      },
+      {
+        path: 'procesos/:id(\\d+)',
+        name: 'process',
+        component: () => import('@/views/knowledge/ProcessView.vue'),
+        props: numericId,
+        meta: { title: 'Proceso', nav: 'knowledge' },
+      },
+      {
+        path: 'procedimientos/:id(\\d+)',
+        name: 'procedure',
+        component: () => import('@/views/knowledge/ProcedureView.vue'),
+        props: numericId,
+        meta: { title: 'Procedimiento', nav: 'knowledge' },
+      },
       { path: 'perfil', name: 'profile', component: () => import('@/views/ProfileView.vue'), meta: { title: 'Mi perfil', nav: 'profile' } },
       {
         path: 'admin/usuarios',

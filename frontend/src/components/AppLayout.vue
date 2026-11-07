@@ -22,7 +22,14 @@ const router = useRouter();
 const drawerOpen = ref(false);
 
 const sections = computed(() => {
-  const list: { title: string; items: NavItem[] }[] = [];
+  const list: { title: string; items: NavItem[] }[] = [
+    {
+      title: 'Consulta',
+      items: [
+        { key: 'knowledge', label: 'Base de conocimiento', icon: 'book', to: { name: 'knowledge' } },
+      ],
+    },
+  ];
   if (session.isAdmin) {
     list.push({
       title: 'Administración',
@@ -37,6 +44,7 @@ const sections = computed(() => {
 });
 
 const bottomItems: NavItem[] = [
+  { key: 'knowledge', label: 'Contenidos', icon: 'book', to: { name: 'knowledge' } },
   { key: 'profile', label: 'Perfil', icon: 'user', to: { name: 'profile' } },
 ];
 
