@@ -12,11 +12,13 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { PrismaExceptionFilter } from './common/prisma-exception.filter';
 import { validateEnv } from './config/env.validation';
+import { DashboardModule } from './dashboard/dashboard.module';
 import { HealthController } from './health.controller';
 import { MailModule } from './mail/mail.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProceduresModule } from './procedures/procedures.module';
 import { ProcessesModule } from './processes/processes.module';
+import { SearchModule } from './search/search.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -43,6 +45,8 @@ import { UsersModule } from './users/users.module';
     CatalogModule,
     ProcessesModule,
     ProceduresModule,
+    SearchModule,
+    DashboardModule,
   ],
   controllers: [HealthController],
   providers: [
