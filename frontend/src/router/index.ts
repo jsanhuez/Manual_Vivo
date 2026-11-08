@@ -97,6 +97,25 @@ const routes: RouteRecordRaw[] = [
         meta: { title: 'Editar proceso', roles: MANAGERS, nav: 'manage-processes' },
       },
       {
+        path: 'gestion/procedimientos',
+        name: 'manage-procedures',
+        component: () => import('@/views/manage/ProcedureListView.vue'),
+        meta: { title: 'Procedimientos', roles: MANAGERS, nav: 'manage-procedures' },
+      },
+      {
+        path: 'gestion/procedimientos/nuevo',
+        name: 'procedure-new',
+        component: () => import('@/views/manage/ProcedureEditorView.vue'),
+        meta: { title: 'Nuevo procedimiento', roles: MANAGERS, nav: 'manage-procedures' },
+      },
+      {
+        path: 'gestion/procedimientos/:id(\\d+)',
+        name: 'procedure-edit',
+        component: () => import('@/views/manage/ProcedureEditorView.vue'),
+        props: numericId,
+        meta: { title: 'Editar procedimiento', roles: MANAGERS, nav: 'manage-procedures' },
+      },
+      {
         path: 'admin/usuarios',
         name: 'users',
         component: () => import('@/views/admin/UsersView.vue'),

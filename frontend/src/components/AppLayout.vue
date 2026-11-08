@@ -38,6 +38,7 @@ const sections = computed(() => {
       title: 'Gestión de contenidos',
       items: [
         { key: 'manage-processes', label: 'Procesos', icon: 'folder', to: { name: 'manage-processes' } },
+        { key: 'manage-procedures', label: 'Procedimientos', icon: 'file', to: { name: 'manage-procedures' } },
       ],
     });
   }
