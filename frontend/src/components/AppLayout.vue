@@ -20,13 +20,16 @@ const route = useRoute();
 const router = useRouter();
 
 const drawerOpen = ref(false);
+const search = ref(typeof route.query.q === 'string' ? route.query.q : '');
 
 const sections = computed(() => {
   const list: { title: string; items: NavItem[] }[] = [
     {
       title: 'Consulta',
       items: [
+        { key: 'home', label: 'Inicio', icon: 'home', to: { name: 'home' } },
         { key: 'knowledge', label: 'Base de conocimiento', icon: 'book', to: { name: 'knowledge' } },
+        { key: 'search', label: 'Buscar', icon: 'search', to: { name: 'search' } },
       ],
     },
   ];
@@ -44,7 +47,9 @@ const sections = computed(() => {
 });
 
 const bottomItems: NavItem[] = [
+  { key: 'home', label: 'Inicio', icon: 'home', to: { name: 'home' } },
   { key: 'knowledge', label: 'Contenidos', icon: 'book', to: { name: 'knowledge' } },
+  { key: 'search', label: 'Buscar', icon: 'search', to: { name: 'search' } },
   { key: 'profile', label: 'Perfil', icon: 'user', to: { name: 'profile' } },
 ];
 
@@ -63,6 +68,20 @@ watch(
     drawerOpen.value = false;
   },
 );
+
+watch(
+  () => route.query.q,
+  (q) => {
+    if (route.name === 'search') {
+      search.value = typeof q === 'string' ? q : '';
+    }
+  },
+);
+
+function submitSearch(): void {
+  const q = search.value.trim();
+  void router.push({ name: 'search', query: q ? { q } : {} });
+}
 
 async function logout(): Promise<void> {
   await session.logout();
@@ -111,9 +130,21 @@ async function logout(): Promise<void> {
           <AppIcon :name="drawerOpen ? 'x' : 'menu'" />
         </button>
         <span class="title"><span class="logo" aria-hidden="true">MV</span>Manual Vivo</span>
+        <RouterLink class="ibtn" :to="{ name: 'search' }" aria-label="Buscar"><AppIcon name="search" /></RouterLink>
       </div>
 
       <header class="top">
+        <form class="srch" role="search" @submit.prevent="submitSearch">
+          <AppIcon name="search" />
+          <label for="busqueda-global" class="sr-only">Buscar procesos y procedimientos</label>
+          <input
+            id="busqueda-global"
+            v-model="search"
+            type="search"
+            maxlength="100"
+            placeholder="Buscar procesos, procedimientos o palabras clave…"
+          />
+        </form>
         <RouterLink v-if="session.user" class="who" :to="{ name: 'profile' }" aria-label="Ir a mi perfil">
           <div class="av" :style="{ background: avatarColor }" aria-hidden="true">{{ initials(session.user) }}</div>
           <div>

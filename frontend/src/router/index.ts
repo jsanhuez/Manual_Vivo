@@ -48,7 +48,7 @@ const routes: RouteRecordRaw[] = [
     path: '/',
     component: AppLayout,
     children: [
-      { path: '', name: 'home', redirect: { name: 'profile' } },
+      { path: '', name: 'home', component: () => import('@/views/HomeView.vue'), meta: { title: 'Inicio', nav: 'home' } },
       {
         path: 'conocimiento',
         name: 'knowledge',
@@ -68,6 +68,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/knowledge/ProcedureView.vue'),
         props: numericId,
         meta: { title: 'Procedimiento', nav: 'knowledge' },
+      },
+      {
+        path: 'buscar',
+        name: 'search',
+        component: () => import('@/views/knowledge/SearchView.vue'),
+        meta: { title: 'Búsqueda', nav: 'search' },
       },
       { path: 'perfil', name: 'profile', component: () => import('@/views/ProfileView.vue'), meta: { title: 'Mi perfil', nav: 'profile' } },
       {
