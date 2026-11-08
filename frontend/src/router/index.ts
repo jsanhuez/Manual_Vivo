@@ -13,6 +13,7 @@ declare module 'vue-router' {
   }
 }
 
+const MANAGERS: RoleName[] = ['EDITOR', 'ADMIN'];
 const ADMINS: RoleName[] = ['ADMIN'];
 
 const numericId = (route: { params: Record<string, unknown> }) => ({ id: Number(route.params.id) });
@@ -76,6 +77,25 @@ const routes: RouteRecordRaw[] = [
         meta: { title: 'Búsqueda', nav: 'search' },
       },
       { path: 'perfil', name: 'profile', component: () => import('@/views/ProfileView.vue'), meta: { title: 'Mi perfil', nav: 'profile' } },
+      {
+        path: 'gestion/procesos',
+        name: 'manage-processes',
+        component: () => import('@/views/manage/ProcessListView.vue'),
+        meta: { title: 'Procesos', roles: MANAGERS, nav: 'manage-processes' },
+      },
+      {
+        path: 'gestion/procesos/nuevo',
+        name: 'process-new',
+        component: () => import('@/views/manage/ProcessFormView.vue'),
+        meta: { title: 'Registrar proceso', roles: MANAGERS, nav: 'manage-processes' },
+      },
+      {
+        path: 'gestion/procesos/:id(\\d+)',
+        name: 'process-edit',
+        component: () => import('@/views/manage/ProcessFormView.vue'),
+        props: numericId,
+        meta: { title: 'Editar proceso', roles: MANAGERS, nav: 'manage-processes' },
+      },
       {
         path: 'admin/usuarios',
         name: 'users',

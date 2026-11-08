@@ -33,6 +33,14 @@ const sections = computed(() => {
       ],
     },
   ];
+  if (session.canManage) {
+    list.push({
+      title: 'Gestión de contenidos',
+      items: [
+        { key: 'manage-processes', label: 'Procesos', icon: 'folder', to: { name: 'manage-processes' } },
+      ],
+    });
+  }
   if (session.isAdmin) {
     list.push({
       title: 'Administración',
