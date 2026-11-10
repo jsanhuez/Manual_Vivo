@@ -8,7 +8,6 @@ Estado: **Sprint 4 finalizado (09-11-2026)**. Incluye autenticación, cuentas, c
 
 Juan Sanhueza R.
 
-
 ## Tecnologías
 
 | Capa | Tecnología |
@@ -19,18 +18,17 @@ Juan Sanhueza R.
 | Datos | PostgreSQL 17 |
 | Despliegue | Render (Web Service con Docker y Static Site) |
 
-
 ## Entorno y Usuarios de prueba
 
-https://manual-vivo.onrender.com
+https://manual-vivo.onrender.com/
 
 Contraseña de las tres cuentas: `ManualVivo2026!`
 
 | Perfil | Correo | Área | Nivel |
 |---|---|---|---|
-| Administrador | valentina.soto@recylink.test | Administración y Finanzas | Restringido |
-| Editor | diego.munoz@recylink.test | Operaciones | Área |
-| Colaborador | ignacia.perez@recylink.test | Operaciones | General |
+| Administrador | valentina.soto@empresa.test | Administración y Finanzas | Restringido |
+| Editor | diego.munoz@empresa.test | Operaciones | Área |
+| Colaborador | ignacia.perez@empresa.test | Operaciones | General |
 
 Con el contenido semilla, Ignacia ve 3 procedimientos, Diego ve 4 y Valentina ve los 5.
 
