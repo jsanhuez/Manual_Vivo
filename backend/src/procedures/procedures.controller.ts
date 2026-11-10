@@ -3,7 +3,7 @@ import { AuthUser } from '../common/auth-user';
 import { ClientIp, CurrentUser, Roles } from '../common/decorators';
 import { IdPipe } from '../common/pipes';
 import { StatusDto } from '../processes/dto/process.dto';
-import { CreateProcedureDto, ManageProceduresQueryDto, ProcedureMetaDto, VersionContentDto } from './dto/procedure.dto';
+import { CreateProcedureDto, ManageProceduresQueryDto, ProcedureMetaDto, RejectVersionDto, VersionContentDto } from './dto/procedure.dto';
 import { ProceduresService } from './procedures.service';
 import { VersionsService } from './versions.service';
 
@@ -85,10 +85,41 @@ export class ProceduresController {
 export class VersionsController {
   constructor(private readonly versions: VersionsService) {}
 
+  @Roles('ADMIN')
+  @Get('in-review')
+  inReview() {
+    return this.versions.listInReview();
+  }
+
+  @Roles('ADMIN')
+  @Get(':id/review')
+  review(@Param('id', IdPipe) id: number) {
+    return this.versions.reviewDetail(id);
+  }
+
   @Roles('EDITOR', 'ADMIN')
   @Post(':id/submit')
   @HttpCode(HttpStatus.OK)
   submit(@Param('id', IdPipe) id: number, @CurrentUser() user: AuthUser, @ClientIp() ip: string | null) {
     return this.versions.submit(user, id, ip);
+  }
+
+  @Roles('ADMIN')
+  @Post(':id/publish')
+  @HttpCode(HttpStatus.OK)
+  publish(@Param('id', IdPipe) id: number, @CurrentUser() user: AuthUser, @ClientIp() ip: string | null) {
+    return this.versions.publish(user, id, ip);
+  }
+
+  @Roles('ADMIN')
+  @Post(':id/reject')
+  @HttpCode(HttpStatus.OK)
+  reject(
+    @Param('id', IdPipe) id: number,
+    @Body() dto: RejectVersionDto,
+    @CurrentUser() user: AuthUser,
+    @ClientIp() ip: string | null,
+  ) {
+    return this.versions.reject(user, id, dto, ip);
   }
 }

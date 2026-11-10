@@ -52,6 +52,13 @@ export class CreateProcedureDto extends ProcedureMetaDto {
   changeSummary: string;
 }
 
+export class RejectVersionDto {
+  @Trim()
+  @IsString({ message: 'Ingresa la observación' })
+  @Length(5, 500, { message: 'La observación debe tener entre 5 y 500 caracteres' })
+  reviewNotes: string;
+}
+
 export class ManageProceduresQueryDto {
   @ToInt()
   @IsOptional()
