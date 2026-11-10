@@ -47,14 +47,14 @@ BEGIN
 
         INSERT INTO users (area_id, role_id, access_level_id, first_name, last_name, email, hire_date)
         SELECT a.id, (SELECT x.id FROM roles x WHERE x.name = 'EDITOR'), (SELECT x.id FROM access_levels x WHERE x.level = 3),
-               'Autor', 'Carga', 'autor.carga@recylink.test', current_date
+               'Autor', 'Carga', 'autor.carga@empresa.test', current_date
         FROM areas a WHERE a.name = 'Carga A'
         RETURNING users.id INTO v_author;
 
         -- 50 colaboradores repartidos en tres áreas con niveles 1 y 2
         INSERT INTO users (area_id, role_id, access_level_id, first_name, last_name, email, hire_date)
         SELECT a.id, (SELECT x.id FROM roles x WHERE x.name = 'COLLABORATOR'), (SELECT x.id FROM access_levels x WHERE x.level = 1 + (g % 2)),
-               'Usuario', 'Carga ' || g, 'carga' || g || '@recylink.test', current_date
+               'Usuario', 'Carga ' || g, 'carga' || g || '@empresa.test', current_date
         FROM generate_series(1, 50) g
         JOIN areas a ON a.name = (ARRAY['Carga A', 'Carga B', 'Carga C'])[1 + g % 3];
 
@@ -85,7 +85,7 @@ BEGIN
         ANALYZE procedures;
         ANALYZE procedure_versions;
 
-        SELECT u.id INTO v_user FROM users u WHERE u.email = 'carga7@recylink.test';
+        SELECT u.id INTO v_user FROM users u WHERE u.email = 'carga7@empresa.test';
 
         r := r || jsonb_build_object('query', 'Datos de la prueba',
             'rows', (SELECT count(*) FROM procedures) || ' procedimientos, ' || (SELECT count(*) FROM procedure_versions)

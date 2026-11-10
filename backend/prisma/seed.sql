@@ -22,9 +22,9 @@ INSERT INTO users (area_id, role_id, access_level_id, first_name, last_name, ema
 SELECT a.id, r.id, l.id, u.first_name, u.last_name, u.email,
        '$2a$10$eIRTzCLkmbREvPRxHaMkKumB.AO1lQf92J0mMgGc/tzEhX67OBmWu', u.job_title, u.hire_date::date
 FROM (VALUES
- ('Administración y Finanzas', 'ADMIN',        'Restringido', 'Valentina', 'Soto',  'valentina.soto@recylink.test', 'Líder de procesos',       '2024-03-04'),
- ('Operaciones',               'EDITOR',       'Área',        'Diego',     'Muñoz', 'diego.munoz@recylink.test',    'Jefe de Operaciones',     '2023-08-01'),
- ('Operaciones',               'COLLABORATOR', 'General',     'Ignacia',   'Pérez', 'ignacia.perez@recylink.test',  'Analista de Operaciones', '2026-11-02')
+ ('Administración y Finanzas', 'ADMIN',        'Restringido', 'Valentina', 'Soto',  'valentina.soto@empresa.test', 'Líder de procesos',       '2024-03-04'),
+ ('Operaciones',               'EDITOR',       'Área',        'Diego',     'Muñoz', 'diego.munoz@empresa.test',    'Jefe de Operaciones',     '2023-08-01'),
+ ('Operaciones',               'COLLABORATOR', 'General',     'Ignacia',   'Pérez', 'ignacia.perez@empresa.test',  'Analista de Operaciones', '2026-11-02')
 ) AS u(area, role, lvl, first_name, last_name, email, job_title, hire_date)
 JOIN areas a         ON a.name = u.area
 JOIN roles r         ON r.name = u.role
@@ -35,16 +35,16 @@ ORDER BY u.email;
 INSERT INTO processes (area_id, owner_id, access_level_id, code, name, objective, scope, is_cross_area, created_at, updated_at)
 SELECT a.id, u.id, l.id, x.code, x.name, x.objective, x.scope, x.cross_area, x.created::timestamptz, x.created::timestamptz
 FROM (VALUES
- ('OPE-P02', 'Coordinación de retiros con gestores del ecosistema', 'Operaciones', 'diego.munoz@recylink.test', 'General',
+ ('OPE-P02', 'Coordinación de retiros con gestores del ecosistema', 'Operaciones', 'diego.munoz@empresa.test', 'General',
   'Programar y registrar los retiros de residuos con gestores autorizados.',
   'Desde la solicitud del cliente hasta el registro de trazabilidad del retiro.', false, '2026-10-28 08:30-03'),
- ('COM-P01', 'Traspaso de cliente nuevo a Operaciones', 'Comercial', 'valentina.soto@recylink.test', 'General',
+ ('COM-P01', 'Traspaso de cliente nuevo a Operaciones', 'Comercial', 'valentina.soto@empresa.test', 'General',
   'Entregar a Operaciones toda la información necesaria para iniciar el servicio de un cliente nuevo.',
   'Desde la firma de la propuesta hasta la aceptación del traspaso por Operaciones.', false, '2026-10-27 10:30-03'),
- ('AYF-P01', 'Preparación mensual de estados de pago', 'Administración y Finanzas', 'valentina.soto@recylink.test', 'Restringido',
+ ('AYF-P01', 'Preparación mensual de estados de pago', 'Administración y Finanzas', 'valentina.soto@empresa.test', 'Restringido',
   'Calcular y emitir el estado de pago mensual de cada cliente.',
   'Desde el cierre de retiros del mes hasta el envío del estado de pago.', false, '2026-10-29 08:30-03'),
- ('GEN-P01', 'Uso de Manual Vivo', 'Administración y Finanzas', 'valentina.soto@recylink.test', 'General',
+ ('GEN-P01', 'Uso de Manual Vivo', 'Administración y Finanzas', 'valentina.soto@empresa.test', 'General',
   'Explicar cómo consultar procedimientos y mantenerse al día con sus cambios.',
   'Aplica a todas las personas de Recylink.', true, '2026-10-27 08:30-03')
 ) AS x(code, name, area, owner, lvl, objective, scope, cross_area, created)
@@ -77,25 +77,25 @@ ORDER BY x.code;
 INSERT INTO procedure_versions (procedure_id, author_id, reviewer_id, version_number, content, change_summary, status, created_at, published_at)
 SELECT pr.id, au.id, rv.id, x.num, x.content, x.summary, x.st::version_status, x.created::timestamptz, x.published::timestamptz
 FROM (VALUES
- ('OPE-P02-01', 'diego.munoz@recylink.test', 'valentina.soto@recylink.test', 1,
+ ('OPE-P02-01', 'diego.munoz@empresa.test', 'valentina.soto@empresa.test', 1,
   E'## Objetivo\nProgramar cada retiro solicitado con un gestor autorizado para el residuo.\n\n## Pasos\n1. Revisar la solicitud de retiro del cliente.\n2. Elegir un gestor autorizado para el residuo.\n3. Confirmar la fecha y la hora del retiro con el gestor.',
   'Versión inicial', 'PUBLISHED', '2026-10-28 09:00-03', '2026-10-29 10:00-03'),
- ('OPE-P02-01', 'diego.munoz@recylink.test', 'valentina.soto@recylink.test', 2,
+ ('OPE-P02-01', 'diego.munoz@empresa.test', 'valentina.soto@empresa.test', 2,
   E'## Objetivo\nProgramar cada retiro solicitado con un gestor autorizado para el residuo.\n\n## Pasos\n1. Revisar la solicitud de retiro del cliente con al menos **72 horas hábiles** de anticipación.\n2. Elegir un gestor autorizado para el residuo y verificar que su resolución sanitaria esté vigente.\n3. Confirmar la fecha y la hora del retiro con el gestor.\n4. Avisar al cliente la ventana horaria del retiro.\n\n## Registros\n- Solicitud de retiro\n- Confirmación del gestor',
   'Se agrega la verificación de la resolución sanitaria y el aviso al cliente', 'PUBLISHED', '2026-11-06 16:00-03', '2026-11-07 12:00-03'),
- ('OPE-P02-02', 'diego.munoz@recylink.test', 'valentina.soto@recylink.test', 1,
+ ('OPE-P02-02', 'diego.munoz@empresa.test', 'valentina.soto@empresa.test', 1,
   E'## Objetivo\nRecuperar un retiro que no se realizó en la fecha acordada.\n\n## Pasos\n1. Registrar la causa del retiro fallido.\n2. Reprogramar el retiro con el gestor.\n3. Avisar al cliente la nueva fecha.',
   'Versión inicial', 'PUBLISHED', '2026-10-28 11:00-03', '2026-10-29 10:20-03'),
- ('OPE-P02-02', 'diego.munoz@recylink.test', NULL, 2,
+ ('OPE-P02-02', 'diego.munoz@empresa.test', NULL, 2,
   E'## Objetivo\nRecuperar un retiro que no se realizó en la fecha acordada.\n\n## Pasos\n1. Registrar la causa del retiro fallido y adjuntar la evidencia del gestor.\n2. Reprogramar el retiro con el gestor dentro de 48 horas.\n3. Avisar al cliente la nueva fecha.',
   'Se exige evidencia del gestor y un plazo de reprogramación de 48 horas', 'IN_REVIEW', '2026-11-08 17:00-03', NULL),
- ('COM-P01-01', 'valentina.soto@recylink.test', 'valentina.soto@recylink.test', 1,
+ ('COM-P01-01', 'valentina.soto@empresa.test', 'valentina.soto@empresa.test', 1,
   E'## Objetivo\nEntregar a Operaciones un cliente nuevo listo para operar.\n\n## Pasos\n1. Verificar que la ficha del cliente tenga razón social, RUT y sucursales.\n2. Indicar los residuos y la frecuencia de retiro acordada en la propuesta.\n3. Crear la tarea de traspaso para Operaciones con el contacto de cada sucursal.',
   'Versión inicial', 'PUBLISHED', '2026-10-27 11:00-03', '2026-10-28 09:10-03'),
- ('AYF-P01-01', 'valentina.soto@recylink.test', 'valentina.soto@recylink.test', 1,
+ ('AYF-P01-01', 'valentina.soto@empresa.test', 'valentina.soto@empresa.test', 1,
   E'## Objetivo\nValorizar los servicios del mes de cada cliente.\n\n## Pasos\n1. Consolidar los servicios del mes por cliente.\n2. Valorizarlos según la tarifa del contrato vigente.\n3. Revisar descuentos y emitir el estado de pago.',
   'Versión inicial', 'PUBLISHED', '2026-10-29 09:00-03', '2026-10-30 09:00-03'),
- ('GEN-P01-01', 'valentina.soto@recylink.test', 'valentina.soto@recylink.test', 1,
+ ('GEN-P01-01', 'valentina.soto@empresa.test', 'valentina.soto@empresa.test', 1,
   E'## Objetivo\nConocer cómo encontrar la forma vigente de hacer el trabajo.\n\n## Pasos\n1. Busca un procedimiento por palabra clave o navega la base de conocimiento.\n2. Lee la versión vigente y revisa su historial de cambios.\n3. Si eres editor, guarda tus cambios como borrador y envíalos a revisión.',
   'Versión inicial', 'PUBLISHED', '2026-10-27 09:00-03', '2026-10-27 18:00-03')
 ) AS x(proc, author, reviewer, num, content, summary, st, created, published)

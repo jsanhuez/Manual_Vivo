@@ -67,10 +67,10 @@ BEGIN
         INSERT INTO areas (name) VALUES ('Área de prueba B') RETURNING areas.id INTO v_b;
 
         INSERT INTO users (area_id, role_id, access_level_id, first_name, last_name, email, hire_date)
-        VALUES (v_a, v_col, v_lvl1, 'Colaborador', 'Prueba', 'colaborador.prueba@recylink.test', current_date)
+        VALUES (v_a, v_col, v_lvl1, 'Colaborador', 'Prueba', 'colaborador.prueba@empresa.test', current_date)
         RETURNING users.id INTO v_ucol;
         INSERT INTO users (area_id, role_id, access_level_id, first_name, last_name, email, hire_date)
-        VALUES (v_a, v_edi, v_lvl2, 'Editor', 'Prueba', 'editor.prueba@recylink.test', current_date)
+        VALUES (v_a, v_edi, v_lvl2, 'Editor', 'Prueba', 'editor.prueba@empresa.test', current_date)
         RETURNING users.id INTO v_uedi;
 
         -- TST-P01 es del área A, TST-P02 de otra área y TST-P03 es transversal
@@ -125,11 +125,11 @@ BEGIN
         r := r || pg_temp.expect_error('V03', 'RF-04 / CP-06', 'Crear usuario con correo ya registrado',
             $q$INSERT INTO users (area_id, role_id, access_level_id, first_name, last_name, email, hire_date)
                SELECT area_id, role_id, access_level_id, 'Copia', 'Duplicada', email, current_date
-               FROM users WHERE email = 'colaborador.prueba@recylink.test'$q$, '23505');
+               FROM users WHERE email = 'colaborador.prueba@empresa.test'$q$, '23505');
         r := r || pg_temp.expect_error('V04', 'RF-04', 'Crear usuario con correo de formato inválido',
             $q$INSERT INTO users (area_id, role_id, access_level_id, first_name, last_name, email, hire_date)
                SELECT area_id, role_id, access_level_id, 'Correo', 'Malo', 'correo-sin-arroba', current_date
-               FROM users WHERE email = 'colaborador.prueba@recylink.test'$q$, '23514');
+               FROM users WHERE email = 'colaborador.prueba@empresa.test'$q$, '23514');
         r := r || pg_temp.expect_error('V05', 'RF-05', 'Crear rol fuera del dominio permitido',
             $q$INSERT INTO roles (name) VALUES ('SUPERUSER')$q$, '23514');
         r := r || pg_temp.expect_error('V06', 'RF-05', 'Crear nivel de acceso fuera del rango 1 a 9',
@@ -140,8 +140,8 @@ BEGIN
 
         r := r || pg_temp.expect_error('V08', 'RF-04', 'Crear usuario en un área inexistente',
             $q$INSERT INTO users (area_id, role_id, access_level_id, first_name, last_name, email, hire_date)
-               SELECT -1, role_id, access_level_id, 'Sin', 'Área', 'sin.area@recylink.test', current_date
-               FROM users WHERE email = 'colaborador.prueba@recylink.test'$q$, '23503');
+               SELECT -1, role_id, access_level_id, 'Sin', 'Área', 'sin.area@empresa.test', current_date
+               FROM users WHERE email = 'colaborador.prueba@empresa.test'$q$, '23503');
         r := r || pg_temp.expect_error('V09', 'RF-05 / CP-07', 'Eliminar un área que tiene usuarios',
             $q$DELETE FROM areas WHERE name = 'Área de prueba A'$q$, '23503');
 
@@ -178,7 +178,7 @@ BEGIN
         r := r || pg_temp.expect_error('V18', 'RF-13 / CP-17', 'Asignar una ruta con fecha límite anterior a la asignación',
             $q$INSERT INTO route_assignments (route_id, user_id, assigned_at, due_date)
                SELECT r.id, u.id, DATE '2026-11-10', DATE '2026-11-01' FROM onboarding_routes r, users u
-               WHERE r.name = 'Ruta de prueba' AND u.email = 'editor.prueba@recylink.test'$q$, '23514');
+               WHERE r.name = 'Ruta de prueba' AND u.email = 'editor.prueba@empresa.test'$q$, '23514');
         r := r || pg_temp.expect_error('V19', 'RF-13', 'Repetir la posición de un paso dentro de la ruta',
             $q$INSERT INTO route_steps (route_id, procedure_id, step_order)
                SELECT r.id, p.id, 1 FROM onboarding_routes r, procedures p
@@ -186,12 +186,12 @@ BEGIN
         r := r || pg_temp.expect_error('V20', 'RF-15', 'Confirmar dos veces la misma versión',
             $q$INSERT INTO read_confirmations (user_id, version_id)
                SELECT rc.user_id, rc.version_id FROM read_confirmations rc
-               JOIN users u ON u.id = rc.user_id WHERE u.email = 'colaborador.prueba@recylink.test' LIMIT 1$q$, '23505');
+               JOIN users u ON u.id = rc.user_id WHERE u.email = 'colaborador.prueba@empresa.test' LIMIT 1$q$, '23505');
 
         r := r || pg_temp.expect_value('V21', 'RF-10 / CP-13', 'Colaborador no ve contenido de nivel superior ni de otra área',
             $q$SELECT count(*)::text FROM v_procedure_access a
                JOIN users u ON u.id = a.user_id JOIN procedures p ON p.id = a.procedure_id
-               WHERE u.email = 'colaborador.prueba@recylink.test' AND p.code IN ('TST-P01-02', 'TST-P02-01')$q$, '0');
+               WHERE u.email = 'colaborador.prueba@empresa.test' AND p.code IN ('TST-P01-02', 'TST-P02-01')$q$, '0');
         r := r || pg_temp.expect_value('V22', 'RF-10 / CP-14', 'Proceso transversal visible para todos los usuarios activos',
             $q$SELECT (count(*) = (SELECT count(*) FROM users WHERE is_active))::text FROM v_procedure_access a
                JOIN procedures p ON p.id = a.procedure_id WHERE p.code = 'TST-P03-01'$q$, 'true');
@@ -201,7 +201,7 @@ BEGIN
                JOIN procedures p ON p.id = cv.procedure_id
                JOIN v_procedure_access a ON a.procedure_id = p.id
                JOIN users u ON u.id = a.user_id
-               WHERE u.email = 'colaborador.prueba@recylink.test' AND p.code LIKE 'TST-%'
+               WHERE u.email = 'colaborador.prueba@empresa.test' AND p.code LIKE 'TST-%'
                  AND to_tsvector('spanish', pv.content) @@ websearch_to_tsquery('spanish', 'retiro')$q$, 'TST-P01-01');
         r := r || pg_temp.expect_value('V24', 'RF-16 / CP-19', 'Pendientes de reconfirmar TST-P01-01 tras publicar la versión 2',
             $q$SELECT string_agg(split_part(u.email, '@', 1), ', ' ORDER BY u.email) FROM v_pending_reconfirmations x
@@ -209,7 +209,7 @@ BEGIN
                WHERE p.code = 'TST-P01-01'$q$, 'colaborador.prueba, editor.prueba');
         r := r || pg_temp.expect_value('V25', 'RF-14 / CP-18', 'Avance de la ruta tras el cambio de versión (1 de 2 pasos)',
             $q$SELECT progress_pct::text FROM v_route_progress x JOIN users u ON u.id = x.user_id
-               WHERE u.email = 'colaborador.prueba@recylink.test'$q$, '50.0');
+               WHERE u.email = 'colaborador.prueba@empresa.test'$q$, '50.0');
 
         RAISE EXCEPTION '__ROLLBACK__';
     EXCEPTION WHEN raise_exception THEN
