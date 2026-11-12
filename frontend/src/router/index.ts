@@ -116,6 +116,18 @@ const routes: RouteRecordRaw[] = [
         meta: { title: 'Editar procedimiento', roles: MANAGERS, nav: 'manage-procedures' },
       },
       {
+        path: 'admin/revisiones',
+        name: 'reviews',
+        component: () => import('@/views/admin/ReviewsView.vue'),
+        meta: { title: 'Revisiones pendientes', roles: ADMINS, nav: 'reviews' },
+      },
+      {
+        path: 'admin/auditoria',
+        name: 'audit',
+        component: () => import('@/views/admin/AuditView.vue'),
+        meta: { title: 'Registro de auditoría', roles: ADMINS, nav: 'audit' },
+      },
+      {
         path: 'admin/usuarios',
         name: 'users',
         component: () => import('@/views/admin/UsersView.vue'),

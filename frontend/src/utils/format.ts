@@ -78,3 +78,37 @@ export function areaClass(name?: string | null): string {
 export function plural(count: number, singular: string, pluralForm: string): string {
   return `${count} ${count === 1 ? singular : pluralForm}`;
 }
+
+export const AUDIT_ACTIONS: Record<string, { label: string; tone: string }> = {
+  LOGIN: { label: 'Inicio de sesión', tone: 'gr' },
+  LOGOUT: { label: 'Cierre de sesión', tone: 'gr' },
+  LOGIN_FAILED: { label: 'Inicio de sesión fallido', tone: 'da' },
+  LOGIN_BLOCKED: { label: 'Acceso bloqueado', tone: 'da' },
+  ACCESS_DENIED: { label: 'Acceso denegado', tone: 'da' },
+  PASSWORD_RESET_REQUEST: { label: 'Solicitud de recuperación', tone: 'gr' },
+  PASSWORD_RESET: { label: 'Contraseña restablecida', tone: '' },
+  PASSWORD_CHANGE: { label: 'Cambio de contraseña', tone: '' },
+  INVITATION_ACCEPTED: { label: 'Invitación aceptada', tone: '' },
+  INVITE: { label: 'Invitación reenviada', tone: '' },
+  CREATE: { label: 'Creación', tone: '' },
+  UPDATE: { label: 'Edición', tone: '' },
+  PERMISSION_CHANGE: { label: 'Cambio de permisos', tone: 'wa' },
+  ARCHIVE: { label: 'Archivo', tone: 'gr' },
+  RESTORE: { label: 'Restauración', tone: 'gr' },
+  DELETE: { label: 'Eliminación', tone: 'da' },
+  SUBMIT: { label: 'Envío a revisión', tone: '' },
+  PUBLISH: { label: 'Publicación', tone: 'ok' },
+  REJECT: { label: 'Rechazo', tone: 'da' },
+  ASSIGN: { label: 'Asignación de ruta', tone: '' },
+  CONFIRM_READ: { label: 'Confirmación de lectura', tone: 'ok' },
+};
+
+export const ENTITY_LABELS: Record<string, string> = {
+  users: 'Usuario',
+  areas: 'Área',
+  access_levels: 'Nivel de acceso',
+  processes: 'Proceso',
+  procedures: 'Procedimiento',
+  procedure_versions: 'Versión',
+  onboarding_routes: 'Ruta de onboarding',
+};

@@ -249,7 +249,47 @@ export interface Dashboard {
     publishedAt: string;
     procedure: { id: number; code: string; title: string; process: { code: string; name: string; area: { name: string } } };
   }[];
-  management: { drafts: number; inReview: number } | null;
+  management: { drafts: number; inReview: number; reviews: number | null } | null;
+}
+
+export interface ReviewItem {
+  id: number;
+  versionNumber: number;
+  changeSummary: string;
+  createdAt: string;
+  submittedAt: string;
+  author: PersonRef;
+  procedure: { id: number; code: string; title: string; process: { code: string; name: string; area: NamedRef } };
+}
+
+export interface ReviewDetail {
+  id: number;
+  versionNumber: number;
+  content: string;
+  changeSummary: string;
+  createdAt: string;
+  author: PersonRef;
+  procedure: { id: number; code: string; title: string; accessLevel: { name: string }; process: { id: number; code: string; name: string; area: NamedRef } };
+  currentVersion: { versionNumber: number; content: string; publishedAt: string | null } | null;
+  impact: { users: number; routes: number };
+}
+
+export interface AuditItem {
+  id: string;
+  action: string;
+  entity: string;
+  entityId: string | null;
+  details: Record<string, unknown> | null;
+  ipAddress: string | null;
+  createdAt: string;
+  user: PersonRef | null;
+}
+
+export interface AuditPage {
+  items: AuditItem[];
+  total: number;
+  page: number;
+  pageSize: number;
 }
 
 export interface MessageResponse {

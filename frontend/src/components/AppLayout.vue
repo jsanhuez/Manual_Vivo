@@ -46,8 +46,10 @@ const sections = computed(() => {
     list.push({
       title: 'Administración',
       items: [
+        { key: 'reviews', label: 'Revisiones', icon: 'check-square', to: { name: 'reviews' } },
         { key: 'users', label: 'Usuarios', icon: 'users', to: { name: 'users' } },
         { key: 'areas', label: 'Áreas y niveles', icon: 'layers', to: { name: 'areas' } },
+        { key: 'audit', label: 'Auditoría', icon: 'clipboard', to: { name: 'audit' } },
       ],
     });
   }
