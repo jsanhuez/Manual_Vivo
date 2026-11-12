@@ -4,8 +4,8 @@ import { ClientIp, CurrentUser, Roles } from '../common/decorators';
 import { UuidPipe } from '../common/pipes';
 import {
   ChangePasswordDto,
-  CreateUserDto,
   ListUsersQueryDto,
+  NewUserDto,
   UpdateProfileDto,
   UpdateUserDto,
   UserOptionsQueryDto,
@@ -53,7 +53,7 @@ export class UsersController {
 
   @Roles('ADMIN')
   @Post()
-  create(@Body() dto: CreateUserDto, @CurrentUser() actor: AuthUser, @ClientIp() ip: string | null) {
+  create(@Body() dto: NewUserDto, @CurrentUser() actor: AuthUser, @ClientIp() ip: string | null) {
     return this.users.create(dto, actor, ip);
   }
 

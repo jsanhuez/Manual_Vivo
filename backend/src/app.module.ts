@@ -16,6 +16,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { HealthController } from './health.controller';
 import { MailModule } from './mail/mail.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { OnboardingModule } from './onboarding/onboarding.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProceduresModule } from './procedures/procedures.module';
 import { ProcessesModule } from './processes/processes.module';
@@ -47,6 +48,7 @@ import { UsersModule } from './users/users.module';
     CatalogModule,
     ProcessesModule,
     ProceduresModule,
+    OnboardingModule,
     SearchModule,
     DashboardModule,
   ],

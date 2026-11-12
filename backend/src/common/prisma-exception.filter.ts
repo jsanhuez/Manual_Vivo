@@ -12,6 +12,11 @@ const UNIQUE_MESSAGES: Record<string, string> = {
   procedure_id: 'El procedimiento ya tiene una versión en borrador o en revisión',
 };
 
+const CHECK_MESSAGES: Record<string, string> = {
+  ck_route_assignments_due: 'La fecha límite no puede ser anterior a la fecha de asignación',
+  ck_process_relations_not_self: 'Un proceso no puede relacionarse consigo mismo',
+};
+
 export function mapPrismaError(error: PrismaError): { status: number; message: string } {
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     if (error.code === 'P2002') {
@@ -36,7 +41,8 @@ export function mapPrismaError(error: PrismaError): { status: number; message: s
     return { status: HttpStatus.UNPROCESSABLE_ENTITY, message: 'El registro está relacionado con datos inexistentes o en uso' };
   }
   if (sqlState === '23514') {
-    const custom = dbMessage && !dbMessage.startsWith('new row') ? dbMessage : undefined;
+    const constraint = Object.keys(CHECK_MESSAGES).find((name) => error.message.includes(name));
+    const custom = constraint ? CHECK_MESSAGES[constraint] : dbMessage && !dbMessage.startsWith('new row') ? dbMessage : undefined;
     return {
       status: HttpStatus.UNPROCESSABLE_ENTITY,
       message: custom ?? 'Los datos no cumplen una regla de integridad de la base de datos',

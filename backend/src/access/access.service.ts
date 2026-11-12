@@ -56,4 +56,16 @@ export class AccessService {
     }
     return { accessLevel: { level: { lte: user.level } }, process: this.manageableProcessWhere(user) };
   }
+
+  // Las rutas transversales (sin área) solo las gestiona el administrador
+  manageableRouteWhere(user: AuthUser): Prisma.OnboardingRouteWhereInput {
+    if (user.role === 'ADMIN') {
+      return {};
+    }
+    return user.role === 'EDITOR' ? { areaId: user.areaId } : NOTHING;
+  }
+
+  canManageRoute(user: AuthUser, areaId: number | null): boolean {
+    return user.role === 'ADMIN' || (user.role === 'EDITOR' && areaId === user.areaId);
+  }
 }

@@ -1,14 +1,22 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  ServiceUnavailableException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { compare, hash } from 'bcryptjs';
 import { AuditService } from '../audit/audit.service';
 import { AccountTokenService } from '../auth/account-token.service';
 import { BCRYPT_COST } from '../auth/password.policy';
-import { AuthUser } from '../common/auth-user';
-import { assertActiveArea } from '../common/catalog-checks';
+import { AuthUser, RoleName } from '../common/auth-user';
+import { accessLevelValue, assertActiveArea } from '../common/catalog-checks';
 import { MailService } from '../mail/mail.service';
+import { OnboardingService } from '../onboarding/onboarding.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { ChangePasswordDto, CreateUserDto, ListUsersQueryDto, UpdateProfileDto, UpdateUserDto } from './dto/user.dto';
+import { ChangePasswordDto, CreateUserDto, ListUsersQueryDto, NewUserDto, UpdateProfileDto, UpdateUserDto } from './dto/user.dto';
 import { adminUserSelect, presentAdminUser, profileSelect } from './user.select';
 
 @Injectable()
@@ -18,6 +26,7 @@ export class UsersService {
     private readonly audit: AuditService,
     private readonly tokens: AccountTokenService,
     private readonly mail: MailService,
+    private readonly onboarding: OnboardingService,
   ) {}
 
   async getProfile(userId: string) {
@@ -86,8 +95,9 @@ export class UsersService {
     return presentAdminUser(user);
   }
 
-  async create(dto: CreateUserDto, actor: AuthUser, ip: string | null) {
+  async create(dto: NewUserDto, actor: AuthUser, ip: string | null) {
     await assertActiveArea(this.prisma, dto.areaId);
+    const route = dto.routeId ? await this.onboarding.assertAssignable(dto.routeId, await this.futureUser(dto)) : null;
     const user = await this.prisma.$transaction(async (tx) => {
       const created = await tx.user.create({
         data: {
@@ -113,10 +123,19 @@ export class UsersService {
         },
         tx,
       );
+      if (route) {
+        await tx.routeAssignment.create({
+          data: { routeId: route.id, userId: created.id, dueDate: dto.routeDueDate ? new Date(dto.routeDueDate) : null },
+        });
+        await this.audit.log(
+          { userId: actor.id, action: 'ASSIGN', entity: 'onboarding_routes', entityId: route.id, details: { route: route.name, email: created.email, dueDate: dto.routeDueDate ?? null }, ip },
+          tx,
+        );
+      }
       return created;
     });
-    await this.sendInvitation(user);
-    return presentAdminUser(user);
+    const invitationSent = await this.sendInvitation(user, route?.name);
+    return { ...presentAdminUser(user), invitationSent };
   }
 
   async update(id: string, dto: UpdateUserDto, actor: AuthUser, ip: string | null) {
@@ -177,7 +196,9 @@ export class UsersService {
     if (user.passwordHash) {
       throw new ConflictException('El usuario ya activó su cuenta');
     }
-    await this.sendInvitation(user);
+    if (!(await this.sendInvitation(user))) {
+      throw new ServiceUnavailableException('No se pudo enviar el correo. Intenta nuevamente en unos minutos');
+    }
     await this.audit.log({ userId: actor.id, action: 'INVITE', entity: 'users', entityId: id, details: { email: user.email }, ip });
     return { message: 'Se envió una nueva invitación' };
   }
@@ -201,9 +222,18 @@ export class UsersService {
     });
   }
 
-  private async sendInvitation(user: { id: string; email: string; firstName: string }): Promise<void> {
+  private async sendInvitation(user: { id: string; email: string; firstName: string }, routeName?: string): Promise<boolean> {
     const token = await this.tokens.create({ id: user.id, passwordHash: null }, 'invite');
-    await this.mail.sendInvitation(user, token);
+    return this.mail.sendInvitation(user, token, routeName);
+  }
+
+  // Permisos de la cuenta nueva para validar su ruta
+  private async futureUser(dto: CreateUserDto): Promise<AuthUser> {
+    const [role, level] = await Promise.all([this.prisma.role.findUnique({ where: { id: dto.roleId } }), accessLevelValue(this.prisma, dto.accessLevelId)]);
+    if (!role) {
+      throw new UnprocessableEntityException('El rol no existe');
+    }
+    return { id: '', email: dto.email, firstName: dto.firstName, lastName: dto.lastName, role: role.name as RoleName, areaId: dto.areaId, level };
   }
 }
 

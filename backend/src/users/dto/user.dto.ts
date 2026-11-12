@@ -15,7 +15,7 @@ import {
 import { PASSWORD_MESSAGE, PASSWORD_RULE } from '../../auth/password.policy';
 import { ToInt, ToLowerCase, Trim, TrimOrNull } from '../../common/transforms';
 
-const DATE_FORMAT = /^\d{4}-\d{2}-\d{2}$/;
+export const DATE_FORMAT = /^\d{4}-\d{2}-\d{2}$/;
 
 export class UpdateProfileDto {
   @Trim()
@@ -67,6 +67,18 @@ export class CreateUserDto extends UpdateProfileDto {
   @IsInt({ message: 'Selecciona un nivel de acceso' })
   @Min(1, { message: 'Selecciona un nivel de acceso' })
   accessLevelId: number;
+}
+
+export class NewUserDto extends CreateUserDto {
+  @IsOptional()
+  @IsInt({ message: 'La ruta de onboarding no es válida' })
+  @Min(1, { message: 'La ruta de onboarding no es válida' })
+  routeId?: number | null;
+
+  @IsOptional()
+  @Matches(DATE_FORMAT, { message: 'La fecha límite debe tener el formato AAAA-MM-DD' })
+  @IsDateString({ strict: true }, { message: 'La fecha límite no es válida' })
+  routeDueDate?: string | null;
 }
 
 export class UpdateUserDto extends CreateUserDto {

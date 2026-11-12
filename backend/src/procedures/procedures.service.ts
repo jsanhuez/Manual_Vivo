@@ -43,9 +43,14 @@ export class ProceduresService {
     if (!current && !canManage) {
       throw new NotFoundException('El procedimiento aún no tiene una versión publicada');
     }
-    const content = current
-      ? await this.prisma.procedureVersion.findUniqueOrThrow({ where: { id: current.id }, select: { content: true } })
-      : null;
+    const [content, lastRead] = await Promise.all([
+      current ? this.prisma.procedureVersion.findUniqueOrThrow({ where: { id: current.id }, select: { content: true } }) : null,
+      this.prisma.readConfirmation.findFirst({
+        where: { userId: user.id, version: { procedureId: id } },
+        orderBy: { version: { versionNumber: 'desc' } },
+        select: { confirmedAt: true, version: { select: { id: true, versionNumber: true } } },
+      }),
+    ]);
 
     const { versions, process, accessLevel, ...rest } = procedure;
     return {
@@ -54,6 +59,11 @@ export class ProceduresService {
       process: { id: process.id, code: process.code, name: process.name, area: process.area, owner: process.owner },
       currentVersion: current ? { ...current, content: content?.content ?? '' } : null,
       history: published,
+      reading: {
+        lastReadVersion: lastRead?.version.versionNumber ?? null,
+        confirmedAt: lastRead?.confirmedAt ?? null,
+        currentConfirmed: !!current && lastRead?.version.id === current.id,
+      },
       canManage,
       // Los borradores, revisiones y rechazos solo los ve quien gestiona el procedimiento
       workflow: canManage ? versions.filter((version) => version.status !== 'PUBLISHED') : [],
