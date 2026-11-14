@@ -29,6 +29,7 @@ const sections = computed(() => {
       items: [
         { key: 'home', label: 'Inicio', icon: 'home', to: { name: 'home' } },
         { key: 'knowledge', label: 'Base de conocimiento', icon: 'book', to: { name: 'knowledge' } },
+        { key: 'onboarding', label: 'Mi onboarding', icon: 'flag', to: { name: 'onboarding' } },
         { key: 'search', label: 'Buscar', icon: 'search', to: { name: 'search' } },
       ],
     },
@@ -39,6 +40,7 @@ const sections = computed(() => {
       items: [
         { key: 'manage-processes', label: 'Procesos', icon: 'folder', to: { name: 'manage-processes' } },
         { key: 'manage-procedures', label: 'Procedimientos', icon: 'file', to: { name: 'manage-procedures' } },
+        { key: 'manage-routes', label: 'Rutas de onboarding', icon: 'list', to: { name: 'manage-routes' } },
       ],
     });
   }

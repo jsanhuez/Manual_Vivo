@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { api, errorMessages, query } from '@/api/http';
-import type { AdminUser } from '@/api/types';
+import type { AdminUser, RouteSummary } from '@/api/types';
 import AlertBox from '@/components/AlertBox.vue';
 import AppIcon from '@/components/AppIcon.vue';
 import AreaChip from '@/components/AreaChip.vue';
@@ -34,7 +34,11 @@ watch(
   },
 );
 watch(() => [filters.areaId, filters.roleId, filters.status], () => void run());
-onMounted(() => void catalog.load().catch(() => undefined));
+const routes = ref<RouteSummary[]>([]);
+onMounted(async () => {
+  void catalog.load().catch(() => undefined);
+  routes.value = (await api.get<RouteSummary[]>('/routes').catch(() => [])).filter((route) => route.isActive);
+});
 
 const emptyForm = () => ({
   firstName: '',
@@ -46,6 +50,8 @@ const emptyForm = () => ({
   roleId: 0,
   accessLevelId: 0,
   isActive: true,
+  routeId: 0,
+  routeDueDate: '',
 });
 
 const modalOpen = ref(false);
@@ -122,8 +128,16 @@ async function save(): Promise<void> {
         await session.refreshProfile();
       }
     } else {
-      await api.post('/users', payload);
-      toast.show(`Se creó la cuenta y se envió la invitación a ${payload.email}`);
+      const created = await api.post<{ invitationSent: boolean }>('/users', {
+        ...payload,
+        routeId: form.routeId || null,
+        routeDueDate: form.routeId && form.routeDueDate ? form.routeDueDate : null,
+      });
+      if (created.invitationSent) {
+        toast.show(`Se creó la cuenta y se envió la invitación a ${payload.email}`);
+      } else {
+        toast.show(`Se creó la cuenta, pero no se pudo enviar el correo. Reenvía la invitación a ${payload.email}`, 'da');
+      }
     }
     modalOpen.value = false;
     await run();
@@ -314,6 +328,19 @@ function statusChip(user: AdminUser): { label: string; tone: string } {
             <b>Cuenta activa</b>
           </label>
           <p v-if="isSelf" class="help">No puedes desactivar tu cuenta ni cambiar tu propio rol.</p>
+        </div>
+      </div>
+      <div v-if="!editing" class="grid2">
+        <div class="fld">
+          <label for="user-route">Ruta de onboarding</label>
+          <select id="user-route" v-model.number="form.routeId" class="in">
+            <option :value="0">Sin ruta por ahora</option>
+            <option v-for="route in routes" :key="route.id" :value="route.id">{{ route.name }}</option>
+          </select>
+        </div>
+        <div class="fld">
+          <label for="user-route-due">Fecha límite de la ruta</label>
+          <input id="user-route-due" v-model="form.routeDueDate" class="in" type="date" :min="todayInput()" :disabled="!form.routeId" />
         </div>
       </div>
       <div class="form-foot">

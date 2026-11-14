@@ -1,6 +1,7 @@
 export type RoleName = 'COLLABORATOR' | 'EDITOR' | 'ADMIN';
 export type RecordStatus = 'ACTIVE' | 'ARCHIVED';
 export type VersionStatus = 'DRAFT' | 'IN_REVIEW' | 'PUBLISHED' | 'REJECTED';
+export type StepStatus = 'READ' | 'UPDATED' | 'PENDING' | 'LOCKED';
 
 export interface NamedRef {
   id: number;
@@ -167,6 +168,7 @@ export interface ProcedureDetail {
   process: { id: number; code: string; name: string; area: NamedRef; owner: PersonRef };
   currentVersion: VersionWithContent | null;
   history: VersionSummary[];
+  reading: { lastReadVersion: number | null; confirmedAt: string | null; currentConfirmed: boolean };
   canManage: boolean;
   workflow: VersionSummary[];
 }
@@ -241,6 +243,12 @@ export interface SearchResult {
   rank: number;
 }
 
+export interface Progress {
+  required: number;
+  completed: number;
+  pct: number | null;
+}
+
 export interface Dashboard {
   stats: { procedures: number; processes: number; areas: number };
   recentUpdates: {
@@ -249,7 +257,84 @@ export interface Dashboard {
     publishedAt: string;
     procedure: { id: number; code: string; title: string; process: { code: string; name: string; area: { name: string } } };
   }[];
+  pendingReads: {
+    procedureId: number;
+    code: string;
+    title: string;
+    versionNumber: number;
+    changeSummary: string;
+    publishedAt: string;
+    changed: boolean;
+  }[];
+  onboarding: (Progress & { routeId: number; name: string; dueDate: string | null })[];
   management: { drafts: number; inReview: number; reviews: number | null } | null;
+}
+
+export interface OnboardingStep {
+  procedureId: number;
+  code: string;
+  title: string;
+  processName: string;
+  stepOrder: number;
+  isRequired: boolean;
+  currentVersion: number | null;
+  status: StepStatus;
+  confirmedAt: string | null;
+  lastReadVersion: number | null;
+}
+
+export interface MyRoute {
+  assignedAt: string;
+  dueDate: string | null;
+  route: { id: number; name: string; description: string | null; area: { name: string } | null; creator: PersonRef };
+  progress: Progress | null;
+  optional: { total: number; completed: number };
+  steps: OnboardingStep[];
+}
+
+export interface RouteSummary {
+  id: number;
+  name: string;
+  description: string | null;
+  isActive: boolean;
+  area: NamedRef | null;
+  stepCount: number;
+  requiredCount: number;
+  assignmentCount: number;
+}
+
+export interface RouteDetail {
+  id: number;
+  name: string;
+  description: string | null;
+  isActive: boolean;
+  areaId: number | null;
+  area: NamedRef | null;
+  creator: PersonRef;
+  steps: {
+    procedureId: number;
+    code: string;
+    title: string;
+    processName: string;
+    stepOrder: number;
+    isRequired: boolean;
+    active: boolean;
+    currentVersion: number | null;
+  }[];
+  assignments: {
+    assignedAt: string;
+    dueDate: string | null;
+    user: PersonRef & { id: string; area: { name: string } };
+    progress: Progress | null;
+  }[];
+}
+
+export interface RouteProcedureOption {
+  id: number;
+  code: string;
+  title: string;
+  accessLevel: { name: string; level: number };
+  process: { code: string; name: string; area: { name: string } };
 }
 
 export interface ReviewItem {

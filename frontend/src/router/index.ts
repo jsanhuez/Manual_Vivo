@@ -76,6 +76,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/knowledge/SearchView.vue'),
         meta: { title: 'Búsqueda', nav: 'search' },
       },
+      {
+        path: 'onboarding',
+        name: 'onboarding',
+        component: () => import('@/views/onboarding/MyOnboardingView.vue'),
+        meta: { title: 'Mi onboarding', nav: 'onboarding' },
+      },
       { path: 'perfil', name: 'profile', component: () => import('@/views/ProfileView.vue'), meta: { title: 'Mi perfil', nav: 'profile' } },
       {
         path: 'gestion/procesos',
@@ -114,6 +120,25 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/manage/ProcedureEditorView.vue'),
         props: numericId,
         meta: { title: 'Editar procedimiento', roles: MANAGERS, nav: 'manage-procedures' },
+      },
+      {
+        path: 'gestion/rutas',
+        name: 'manage-routes',
+        component: () => import('@/views/manage/RouteListView.vue'),
+        meta: { title: 'Rutas de onboarding', roles: MANAGERS, nav: 'manage-routes' },
+      },
+      {
+        path: 'gestion/rutas/nueva',
+        name: 'route-new',
+        component: () => import('@/views/manage/RouteFormView.vue'),
+        meta: { title: 'Nueva ruta', roles: MANAGERS, nav: 'manage-routes' },
+      },
+      {
+        path: 'gestion/rutas/:id(\\d+)',
+        name: 'route-edit',
+        component: () => import('@/views/manage/RouteFormView.vue'),
+        props: numericId,
+        meta: { title: 'Editar ruta', roles: MANAGERS, nav: 'manage-routes' },
       },
       {
         path: 'admin/revisiones',

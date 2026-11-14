@@ -1362,6 +1362,73 @@ mark {
   min-width: 0;
 }
 
+.steps {
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  background: #fff;
+  margin-bottom: 8px;
+}
+
+.step.cur {
+  border-color: #f2c46d;
+  background: #fffbf2;
+}
+
+.dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex: none;
+  border: 2px solid #b9c5d4;
+  color: var(--mu);
+  background: #fff;
+}
+
+.dot.ok {
+  background: var(--okb);
+  border-color: var(--okb);
+  color: #fff;
+}
+
+.dot.wa {
+  border-color: #c27c00;
+  color: var(--wa);
+}
+
+/* El avance llega en la variable --p como porcentaje */
+.donut {
+  width: 124px;
+  height: 124px;
+  border-radius: 50%;
+  background: conic-gradient(var(--okb) calc(var(--p) * 1%), #e6ebf2 0);
+  display: grid;
+  place-items: center;
+  margin: 6px auto;
+}
+
+.donut span {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 22px;
+}
+
 .fgrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr)) auto;

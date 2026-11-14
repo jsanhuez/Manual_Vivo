@@ -1,4 +1,4 @@
-import type { PersonRef, RoleName, VersionStatus } from '@/api/types';
+import type { PersonRef, Progress, RoleName, StepStatus, VersionStatus } from '@/api/types';
 
 const dateFormat = new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' });
 const dateTimeFormat = new Intl.DateTimeFormat('es-CL', {
@@ -77,6 +77,33 @@ export function areaClass(name?: string | null): string {
 
 export function plural(count: number, singular: string, pluralForm: string): string {
   return `${count} ${count === 1 ? singular : pluralForm}`;
+}
+
+export function formatPct(value?: number | null): string {
+  return `${(value ?? 0).toLocaleString('es-CL', { maximumFractionDigits: 1 })}%`;
+}
+
+export const STEP_STATUS: Record<StepStatus, { label: string; chip: string }> = {
+  READ: { label: 'Leído', chip: 'ok' },
+  UPDATED: { label: 'Actualizado', chip: 'wa' },
+  PENDING: { label: 'Pendiente', chip: 'gr' },
+  LOCKED: { label: 'Sin acceso', chip: 'da' },
+};
+
+// Usa la fecha local del navegador
+export function routeStatus(progress: Progress | null, dueDate: string | null, today = todayInput()): { label: string; tone: string } {
+  if (progress && progress.required > 0 && progress.completed >= progress.required) {
+    return { label: 'Completada', tone: 'ok' };
+  }
+  if (!dueDate) {
+    return { label: 'Sin fecha límite', tone: 'gr' };
+  }
+  const due = dueDate.slice(0, 10);
+  if (due < today) {
+    return { label: 'Atrasada', tone: 'da' };
+  }
+  const days = (Date.parse(due) - Date.parse(today)) / 86_400_000;
+  return days <= 3 ? { label: 'Por vencer', tone: 'wa' } : { label: 'En plazo', tone: '' };
 }
 
 export const AUDIT_ACTIONS: Record<string, { label: string; tone: string }> = {

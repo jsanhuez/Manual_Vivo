@@ -18,6 +18,7 @@ withDefaults(defineProps<{ heading: string; text: string; features?: boolean }>(
           <li><AppIcon name="layers" />Procesos y procedimientos según tu área y rol</li>
           <li><AppIcon name="search" />Búsqueda de texto completo en español</li>
           <li><AppIcon name="clock" />Historial de versiones de cada procedimiento</li>
+          <li><AppIcon name="flag" />Rutas de onboarding y aviso de cada cambio</li>
         </ul>
       </div>
       <p class="legal">Uso interno · Acceso solo con cuenta corporativa</p>

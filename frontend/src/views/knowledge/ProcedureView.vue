@@ -12,7 +12,8 @@ import MarkdownView from '@/components/MarkdownView.vue';
 import RequestState from '@/components/RequestState.vue';
 import VersionChip from '@/components/VersionChip.vue';
 import { useRequest } from '@/composables/useRequest';
-import { formatDate, fullName } from '@/utils/format';
+import { useToastStore } from '@/stores/toast';
+import { formatDate, formatDateTime, fullName } from '@/utils/format';
 
 const props = defineProps<{ id: number }>();
 const route = useRoute();
@@ -49,6 +50,34 @@ watch(
 );
 
 const shown = computed(() => oldVersion.value ?? procedure.value?.currentVersion ?? null);
+
+const toast = useToastStore();
+const accepted = ref(false);
+const confirming = ref(false);
+const confirmErrors = ref<string[]>([]);
+const changedSinceRead = computed(() => {
+  const detail = procedure.value;
+  return !!detail?.currentVersion && !detail.reading.currentConfirmed && detail.reading.lastReadVersion !== null;
+});
+
+// Solo la versión vigente cuenta para el avance (RF-15)
+async function confirmRead(): Promise<void> {
+  const detail = procedure.value;
+  if (!detail?.currentVersion) {
+    return;
+  }
+  confirming.value = true;
+  confirmErrors.value = [];
+  try {
+    const result = await api.post<{ versionNumber: number; confirmedAt: string }>(`/versions/${detail.currentVersion.id}/confirm`);
+    detail.reading = { lastReadVersion: result.versionNumber, confirmedAt: result.confirmedAt, currentConfirmed: true };
+    toast.show(`Confirmaste la lectura de ${detail.code} versión ${result.versionNumber}`);
+  } catch (caught) {
+    confirmErrors.value = errorMessages(caught as ApiError);
+  } finally {
+    confirming.value = false;
+  }
+}
 </script>
 
 <template>
@@ -92,6 +121,10 @@ const shown = computed(() => oldVersion.value ?? procedure.value?.currentVersion
         <RouterLink :to="{ name: 'procedure', params: { id: procedure.id } }">Ver la versión vigente</RouterLink>
       </AlertBox>
       <AlertBox tone="da" :messages="oldError" style="margin-bottom: 14px" />
+      <AlertBox v-if="changedSinceRead && !oldVersion" tone="wa" style="margin-bottom: 14px">
+        <b>Este procedimiento cambió desde tu última lectura (v{{ procedure.reading.lastReadVersion }} → v{{ procedure.currentVersion?.versionNumber }}).</b>
+        Cambios: {{ procedure.currentVersion?.changeSummary }}. Léelo y confirma la nueva versión.
+      </AlertBox>
 
       <div class="row">
         <article class="card" style="flex: 1.7" aria-label="Contenido del procedimiento">
@@ -111,6 +144,23 @@ const shown = computed(() => oldVersion.value ?? procedure.value?.currentVersion
         </article>
 
         <div class="col" style="flex: 1">
+          <section v-if="procedure.currentVersion && !oldVersion" class="card" aria-labelledby="read-title">
+            <h2 id="read-title">Confirmación de lectura</h2>
+            <AlertBox v-if="procedure.reading.currentConfirmed" tone="ok">
+              Confirmaste la lectura de la versión {{ procedure.currentVersion.versionNumber }} el {{ formatDateTime(procedure.reading.confirmedAt) }}
+            </AlertBox>
+            <form v-else novalidate @submit.prevent="confirmRead">
+              <AlertBox tone="da" :messages="confirmErrors" style="margin-bottom: 10px" />
+              <label class="cb" for="read-accept" style="margin: 0 0 12px">
+                <input id="read-accept" v-model="accepted" type="checkbox" />
+                <span>Leí y comprendí la versión {{ procedure.currentVersion.versionNumber }} de este procedimiento</span>
+              </label>
+              <button type="submit" class="btn ok block" :disabled="!accepted || confirming">
+                <AppIcon name="check" />{{ confirming ? 'Confirmando…' : 'Confirmar lectura' }}
+              </button>
+            </form>
+          </section>
+
           <section v-if="procedure.history.length" class="card" aria-labelledby="history-title">
             <h2 id="history-title">Historial de versiones</h2>
             <div class="lst">
