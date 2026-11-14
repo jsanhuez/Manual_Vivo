@@ -11,6 +11,7 @@ import { AuditService } from '../audit/audit.service';
 import { AuthUser } from '../common/auth-user';
 import { accessLevelValue } from '../common/catalog-checks';
 import { StatusDto } from '../processes/dto/process.dto';
+import { ProcessesService } from '../processes/processes.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProcedureDto, ManageProceduresQueryDto, ProcedureMetaDto } from './dto/procedure.dto';
 
@@ -33,6 +34,7 @@ export class ProceduresService {
     private readonly prisma: PrismaService,
     private readonly access: AccessService,
     private readonly audit: AuditService,
+    private readonly processes: ProcessesService,
   ) {}
 
   async getVisible(user: AuthUser, id: number, ip: string | null) {
@@ -43,13 +45,14 @@ export class ProceduresService {
     if (!current && !canManage) {
       throw new NotFoundException('El procedimiento aún no tiene una versión publicada');
     }
-    const [content, lastRead] = await Promise.all([
+    const [content, lastRead, relations] = await Promise.all([
       current ? this.prisma.procedureVersion.findUniqueOrThrow({ where: { id: current.id }, select: { content: true } }) : null,
       this.prisma.readConfirmation.findFirst({
         where: { userId: user.id, version: { procedureId: id } },
         orderBy: { version: { versionNumber: 'desc' } },
         select: { confirmedAt: true, version: { select: { id: true, versionNumber: true } } },
       }),
+      this.processes.relationsFor(user, procedure.process.id),
     ]);
 
     const { versions, process, accessLevel, ...rest } = procedure;
@@ -64,6 +67,7 @@ export class ProceduresService {
         confirmedAt: lastRead?.confirmedAt ?? null,
         currentConfirmed: !!current && lastRead?.version.id === current.id,
       },
+      relations,
       canManage,
       // Los borradores, revisiones y rechazos solo los ve quien gestiona el procedimiento
       workflow: canManage ? versions.filter((version) => version.status !== 'PUBLISHED') : [],

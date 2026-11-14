@@ -20,6 +20,11 @@ export class ProcessesController {
     return this.processes.listManageable(user);
   }
 
+  @Get('map')
+  map(@CurrentUser() user: AuthUser) {
+    return this.processes.map(user);
+  }
+
   @Get(':id')
   get(@Param('id', IdPipe) id: number, @CurrentUser() user: AuthUser, @ClientIp() ip: string | null) {
     return this.processes.getVisible(user, id, ip);

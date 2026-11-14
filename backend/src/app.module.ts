@@ -21,6 +21,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ProceduresModule } from './procedures/procedures.module';
 import { ProcessesModule } from './processes/processes.module';
 import { SearchModule } from './search/search.module';
+import { TrackingModule } from './tracking/tracking.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -49,6 +50,7 @@ import { UsersModule } from './users/users.module';
     ProcessesModule,
     ProceduresModule,
     OnboardingModule,
+    TrackingModule,
     SearchModule,
     DashboardModule,
   ],

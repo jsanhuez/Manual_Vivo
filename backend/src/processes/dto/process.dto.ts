@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
   IsArray,
@@ -11,11 +12,28 @@ import {
   Matches,
   MaxLength,
   Min,
+  ValidateNested,
 } from 'class-validator';
 import { ToBoolean, ToInt, ToUpperCase, Trim, TrimOrNull } from '../../common/transforms';
 
 export const CODE_RULE = /^[A-Z0-9]+(-[A-Z0-9]+)*$/;
 export const CODE_MESSAGE = 'El código solo admite mayúsculas, números y guiones, por ejemplo OPE-P02';
+export const RELATION_TYPES = ['INFORMATION_HANDOFF', 'TRIGGERS', 'DEPENDS_ON'] as const;
+
+export class ProcessRelationDto {
+  @IsInt({ message: 'Selecciona el proceso relacionado' })
+  @Min(1, { message: 'Selecciona el proceso relacionado' })
+  targetProcessId: number;
+
+  @IsIn(RELATION_TYPES, { message: 'El tipo de relación no es válido' })
+  relationType: (typeof RELATION_TYPES)[number];
+
+  @TrimOrNull()
+  @IsOptional()
+  @IsString({ message: 'La descripción de la relación no es válida' })
+  @MaxLength(250, { message: 'La descripción de la relación admite hasta 250 caracteres' })
+  description?: string | null;
+}
 
 export class ProcessDto {
   @ToUpperCase()
@@ -58,6 +76,13 @@ export class ProcessDto {
   @ArrayMaxSize(50, { message: 'Las áreas adicionales no son válidas' })
   @IsInt({ each: true, message: 'Las áreas adicionales no son válidas' })
   visibleAreaIds: number[];
+
+  @IsOptional()
+  @IsArray({ message: 'Las relaciones no son válidas' })
+  @ArrayMaxSize(20, { message: 'Un proceso admite hasta 20 relaciones' })
+  @ValidateNested({ each: true })
+  @Type(() => ProcessRelationDto)
+  relations?: ProcessRelationDto[];
 }
 
 export class StatusDto {

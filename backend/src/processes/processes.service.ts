@@ -26,6 +26,13 @@ const summarySelect = {
   owner: { select: { id: true, firstName: true, lastName: true } },
 } satisfies Prisma.ProcessSelect;
 
+const relatedSelect = {
+  id: true,
+  code: true,
+  name: true,
+  area: { select: { id: true, name: true } },
+} satisfies Prisma.ProcessSelect;
+
 const latestPublished = {
   where: { status: 'PUBLISHED' },
   orderBy: { versionNumber: 'desc' },
@@ -104,7 +111,46 @@ export class ProcessesService {
       ...rest,
       visibleAreas: visibility.map((item) => item.area),
       procedures: procedures.map(({ versions, ...procedure }) => ({ ...procedure, currentVersion: versions[0] ?? null })),
+      relations: await this.relationsFor(user, id),
       canManage: this.access.canManage(user, areaId, [process.accessLevel.level]),
+    };
+  }
+
+  // Relaciones de un proceso con otros procesos que el usuario puede consultar
+  async relationsFor(user: AuthUser, processId: number) {
+    const visible = this.access.processWhere(user);
+    const [outgoing, incoming] = await Promise.all([
+      this.prisma.processRelation.findMany({
+        where: { sourceProcessId: processId, target: visible },
+        select: { id: true, relationType: true, description: true, target: { select: relatedSelect } },
+      }),
+      this.prisma.processRelation.findMany({
+        where: { targetProcessId: processId, source: visible },
+        select: { id: true, relationType: true, description: true, source: { select: relatedSelect } },
+      }),
+    ]);
+    return {
+      outgoing: outgoing.map(({ target, ...relation }) => ({ ...relation, process: target })),
+      incoming: incoming.map(({ source, ...relation }) => ({ ...relation, process: source })),
+    };
+  }
+
+  // Mapa de procesos (RF-12): nodos visibles y relaciones entre ellos
+  async map(user: AuthUser) {
+    const nodes = await this.prisma.process.findMany({
+      where: this.access.processWhere(user),
+      orderBy: { code: 'asc' },
+      select: { ...relatedSelect, isCrossArea: true, procedures: { where: this.readableProcedures(user), select: { id: true } } },
+    });
+    const ids = nodes.map((node) => node.id);
+    const edges = await this.prisma.processRelation.findMany({
+      where: { sourceProcessId: { in: ids }, targetProcessId: { in: ids } },
+      orderBy: { id: 'asc' },
+      select: { id: true, sourceProcessId: true, targetProcessId: true, relationType: true, description: true },
+    });
+    return {
+      nodes: nodes.map(({ procedures, ...node }) => ({ ...node, procedureCount: procedures.length })),
+      edges,
     };
   }
 
@@ -141,14 +187,19 @@ export class ProcessesService {
         status: true,
         accessLevel: { select: { level: true } },
         visibility: { select: { areaId: true } },
+        outgoingRelations: {
+          where: { target: this.access.processWhere(user) },
+          orderBy: { id: 'asc' },
+          select: { targetProcessId: true, relationType: true, description: true },
+        },
       },
     });
     if (!process) {
       throw new NotFoundException('El proceso no existe');
     }
     this.assertManage(user, process.areaId, process.accessLevel.level, 'Solo puedes modificar procesos de tu área');
-    const { accessLevel, visibility, ...rest } = process;
-    return { ...rest, visibleAreaIds: visibility.map((item) => item.areaId) };
+    const { accessLevel, visibility, outgoingRelations, ...rest } = process;
+    return { ...rest, visibleAreaIds: visibility.map((item) => item.areaId), relations: outgoingRelations };
   }
 
   async create(user: AuthUser, dto: ProcessDto, ip: string | null) {
@@ -156,6 +207,7 @@ export class ProcessesService {
     this.assertManage(user, dto.areaId, level, 'Solo puedes registrar procesos de tu área con un nivel que puedas consultar');
     await assertActiveArea(this.prisma, dto.areaId);
     await this.assertOwner(dto.ownerId, dto.areaId);
+    await this.assertRelations(user, dto);
 
     return this.prisma.$transaction(async (tx) => {
       const process = await tx.process.create({
@@ -165,6 +217,7 @@ export class ProcessesService {
         },
         select: { id: true, code: true, name: true },
       });
+      await this.saveRelations(tx, user, process.id, dto);
       await this.audit.log({ userId: user.id, action: 'CREATE', entity: 'processes', entityId: process.id, details: { code: process.code }, ip }, tx);
       return process;
     });
@@ -182,6 +235,7 @@ export class ProcessesService {
       await assertActiveArea(this.prisma, dto.areaId);
     }
     await this.assertOwner(dto.ownerId, dto.areaId);
+    await this.assertRelations(user, dto, id);
 
     return this.prisma.$transaction(async (tx) => {
       const process = await tx.process.update({
@@ -191,6 +245,7 @@ export class ProcessesService {
       });
       await tx.processVisibility.deleteMany({ where: { processId: id } });
       await tx.processVisibility.createMany({ data: this.extraAreas(dto).map((areaId) => ({ processId: id, areaId })) });
+      await this.saveRelations(tx, user, id, dto);
       await this.audit.log({ userId: user.id, action: 'UPDATE', entity: 'processes', entityId: id, details: { code: process.code }, ip }, tx);
       return process;
     });
@@ -238,6 +293,40 @@ export class ProcessesService {
       return [];
     }
     return [...new Set(dto.visibleAreaIds)].filter((areaId) => areaId !== dto.areaId);
+  }
+
+  private async assertRelations(user: AuthUser, dto: ProcessDto, processId?: number): Promise<void> {
+    if (!dto.relations?.length) {
+      return;
+    }
+    if (dto.relations.some((relation) => relation.targetProcessId === processId)) {
+      throw new UnprocessableEntityException('Un proceso no puede relacionarse consigo mismo');
+    }
+    const keys = dto.relations.map((relation) => `${relation.targetProcessId}:${relation.relationType}`);
+    if (new Set(keys).size !== keys.length) {
+      throw new UnprocessableEntityException('Hay relaciones repetidas con el mismo proceso y tipo');
+    }
+    const targets = [...new Set(dto.relations.map((relation) => relation.targetProcessId))];
+    const visible = await this.prisma.process.count({ where: { AND: [{ id: { in: targets } }, this.access.processWhere(user)] } });
+    if (visible !== targets.length) {
+      throw new UnprocessableEntityException('Uno de los procesos relacionados no existe o no está disponible');
+    }
+  }
+
+  // Se reemplazan solo las relaciones hacia procesos que el usuario ve, las demás se conservan
+  private async saveRelations(tx: Prisma.TransactionClient, user: AuthUser, processId: number, dto: ProcessDto): Promise<void> {
+    if (!dto.relations) {
+      return;
+    }
+    await tx.processRelation.deleteMany({ where: { sourceProcessId: processId, target: this.access.processWhere(user) } });
+    await tx.processRelation.createMany({
+      data: dto.relations.map((relation) => ({
+        sourceProcessId: processId,
+        targetProcessId: relation.targetProcessId,
+        relationType: relation.relationType,
+        description: relation.description ?? null,
+      })),
+    });
   }
 
   private assertManage(user: AuthUser, areaId: number, level: number, message: string): void {
