@@ -30,6 +30,7 @@ const sections = computed(() => {
         { key: 'home', label: 'Inicio', icon: 'home', to: { name: 'home' } },
         { key: 'knowledge', label: 'Base de conocimiento', icon: 'book', to: { name: 'knowledge' } },
         { key: 'onboarding', label: 'Mi onboarding', icon: 'flag', to: { name: 'onboarding' } },
+        { key: 'map', label: 'Mapa de procesos', icon: 'map', to: { name: 'map' } },
         { key: 'search', label: 'Buscar', icon: 'search', to: { name: 'search' } },
       ],
     },
@@ -41,6 +42,7 @@ const sections = computed(() => {
         { key: 'manage-processes', label: 'Procesos', icon: 'folder', to: { name: 'manage-processes' } },
         { key: 'manage-procedures', label: 'Procedimientos', icon: 'file', to: { name: 'manage-procedures' } },
         { key: 'manage-routes', label: 'Rutas de onboarding', icon: 'list', to: { name: 'manage-routes' } },
+        { key: 'tracking', label: 'Seguimiento', icon: 'bar-chart', to: { name: 'tracking' } },
       ],
     });
   }
@@ -62,7 +64,8 @@ const sections = computed(() => {
 const bottomItems: NavItem[] = [
   { key: 'home', label: 'Inicio', icon: 'home', to: { name: 'home' } },
   { key: 'knowledge', label: 'Contenidos', icon: 'book', to: { name: 'knowledge' } },
-  { key: 'search', label: 'Buscar', icon: 'search', to: { name: 'search' } },
+  { key: 'onboarding', label: 'Onboarding', icon: 'flag', to: { name: 'onboarding' } },
+  { key: 'map', label: 'Mapa', icon: 'map', to: { name: 'map' } },
   { key: 'profile', label: 'Perfil', icon: 'user', to: { name: 'profile' } },
 ];
 

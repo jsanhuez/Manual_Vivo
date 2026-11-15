@@ -9,6 +9,7 @@ import AreaChip from '@/components/AreaChip.vue';
 import EmptyState from '@/components/EmptyState.vue';
 import LoadingState from '@/components/LoadingState.vue';
 import MarkdownView from '@/components/MarkdownView.vue';
+import RelatedProcesses from '@/components/RelatedProcesses.vue';
 import RequestState from '@/components/RequestState.vue';
 import VersionChip from '@/components/VersionChip.vue';
 import { useRequest } from '@/composables/useRequest';
@@ -176,6 +177,11 @@ async function confirmRead(): Promise<void> {
                 <span class="sub nowrap">{{ formatDate(version.publishedAt) }}</span>
               </RouterLink>
             </div>
+          </section>
+
+          <section class="card" aria-labelledby="related-title">
+            <h2 id="related-title">Procesos relacionados</h2>
+            <RelatedProcesses :relations="procedure.relations" />
           </section>
 
           <section v-if="procedure.canManage" class="card" aria-labelledby="workflow-title">

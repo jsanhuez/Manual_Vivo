@@ -82,6 +82,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/onboarding/MyOnboardingView.vue'),
         meta: { title: 'Mi onboarding', nav: 'onboarding' },
       },
+      {
+        path: 'mapa',
+        name: 'map',
+        component: () => import('@/views/knowledge/ProcessMapView.vue'),
+        meta: { title: 'Mapa de procesos', nav: 'map' },
+      },
       { path: 'perfil', name: 'profile', component: () => import('@/views/ProfileView.vue'), meta: { title: 'Mi perfil', nav: 'profile' } },
       {
         path: 'gestion/procesos',
@@ -139,6 +145,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/manage/RouteFormView.vue'),
         props: numericId,
         meta: { title: 'Editar ruta', roles: MANAGERS, nav: 'manage-routes' },
+      },
+      {
+        path: 'gestion/seguimiento',
+        name: 'tracking',
+        component: () => import('@/views/manage/TrackingView.vue'),
+        meta: { title: 'Seguimiento', roles: MANAGERS, nav: 'tracking' },
       },
       {
         path: 'admin/revisiones',

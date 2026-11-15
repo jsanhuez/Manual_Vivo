@@ -1449,6 +1449,30 @@ mark {
   color: var(--mu);
 }
 
+.map {
+  overflow-x: auto;
+}
+
+.map svg {
+  display: block;
+  min-width: 600px;
+  width: 100%;
+  height: auto;
+}
+
+.map .node {
+  cursor: pointer;
+}
+
+.map .node:focus {
+  outline: none;
+}
+
+.map .node:focus-visible .box {
+  stroke: var(--focus);
+  stroke-width: 3;
+}
+
 tr.sel td {
   background: #f5f9ff;
 }

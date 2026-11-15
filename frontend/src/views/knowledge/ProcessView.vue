@@ -4,6 +4,7 @@ import type { ProcessDetail } from '@/api/types';
 import AppIcon from '@/components/AppIcon.vue';
 import AreaChip from '@/components/AreaChip.vue';
 import EmptyState from '@/components/EmptyState.vue';
+import RelatedProcesses from '@/components/RelatedProcesses.vue';
 import RequestState from '@/components/RequestState.vue';
 import { useRequest } from '@/composables/useRequest';
 import { formatDate, fullName } from '@/utils/format';
@@ -76,6 +77,9 @@ const { data: process, loading, error } = useRequest(() => api.get<ProcessDetail
             <AreaChip :name="process.area.name" />
             <AreaChip v-for="area in process.visibleAreas" :key="area.id" :name="area.name" />
           </div>
+          <h3>Procesos relacionados</h3>
+          <RelatedProcesses :relations="process.relations" />
+          <RouterLink class="btn sec sm" style="margin-top: 12px" :to="{ name: 'map' }"><AppIcon name="map" size="sm" />Ver en el mapa</RouterLink>
         </section>
       </div>
     </template>

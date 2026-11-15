@@ -2,14 +2,15 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { api, errorMessages, type ApiError } from '@/api/http';
-import type { ProcessEdit, ProcessForm, RecordStatus, UserOption } from '@/api/types';
+import type { ProcessCard, ProcessEdit, ProcessForm, ProcessList, RecordStatus, UserOption } from '@/api/types';
 import AlertBox from '@/components/AlertBox.vue';
+import AppIcon from '@/components/AppIcon.vue';
 import LoadingState from '@/components/LoadingState.vue';
 import RequestState from '@/components/RequestState.vue';
 import { useCatalogStore } from '@/stores/catalog';
 import { useSessionStore } from '@/stores/session';
 import { useToastStore } from '@/stores/toast';
-import { fullName, ROLE_LABELS } from '@/utils/format';
+import { fullName, RELATION_TYPES, ROLE_LABELS } from '@/utils/format';
 
 const props = defineProps<{ id?: number }>();
 const router = useRouter();
@@ -29,8 +30,10 @@ const form = reactive<ProcessForm>({
   accessLevelId: 0,
   isCrossArea: false,
   visibleAreaIds: [],
+  relations: [],
 });
 const fieldErrors = reactive<Record<string, string>>({});
+const relatedOptions = ref<ProcessCard[]>([]);
 const apiErrors = ref<string[]>([]);
 const loadError = ref<ApiError | null>(null);
 const loading = ref(true);
@@ -63,6 +66,7 @@ async function loadOwners(): Promise<void> {
 onMounted(async () => {
   try {
     await catalog.load();
+    relatedOptions.value = (await api.get<ProcessList>('/processes')).items.filter((process) => process.id !== props.id);
     if (props.id !== undefined) {
       const process = await api.get<ProcessEdit>(`/processes/${props.id}/edit`);
       status.value = process.status;
@@ -76,6 +80,7 @@ onMounted(async () => {
         accessLevelId: process.accessLevelId,
         isCrossArea: process.isCrossArea,
         visibleAreaIds: process.visibleAreaIds,
+        relations: process.relations,
       });
     } else {
       form.areaId = isAdmin.value ? 0 : (session.user?.area.id ?? 0);
@@ -115,7 +120,17 @@ function validate(): boolean {
   fieldErrors.areaId = form.areaId ? '' : 'Selecciona el área dueña';
   fieldErrors.ownerId = form.ownerId ? '' : 'Selecciona el responsable';
   fieldErrors.accessLevelId = form.accessLevelId ? '' : 'Selecciona el nivel de acceso';
+  const keys = form.relations.map((relation) => `${relation.targetProcessId}:${relation.relationType}`);
+  fieldErrors.relations = form.relations.some((relation) => !relation.targetProcessId)
+    ? 'Selecciona el proceso de cada relación'
+    : new Set(keys).size !== keys.length
+      ? 'Hay relaciones repetidas con el mismo proceso y tipo'
+      : '';
   return Object.values(fieldErrors).every((message) => !message);
+}
+
+function addRelation(): void {
+  form.relations.push({ targetProcessId: 0, relationType: 'INFORMATION_HANDOFF', description: '' });
 }
 
 async function submit(): Promise<void> {
@@ -130,6 +145,7 @@ async function submit(): Promise<void> {
     objective: form.objective.trim(),
     scope: form.scope?.trim() || null,
     visibleAreaIds: form.isCrossArea ? [] : form.visibleAreaIds,
+    relations: form.relations.map((relation) => ({ ...relation, description: relation.description?.trim() || null })),
   };
   try {
     if (isEdit.value) {
@@ -298,6 +314,38 @@ async function submit(): Promise<void> {
         <AlertBox tone="info">
           Una persona ve el proceso si su área tiene acceso y su nivel es mayor o igual que el del proceso.
         </AlertBox>
+        <section class="card" aria-labelledby="relations-title">
+          <h2 id="relations-title">Relaciones con otros procesos</h2>
+          <p class="sub" style="margin-bottom: 10px">Alimentan el mapa de procesos. Indica a qué procesos entrega información este proceso o de cuáles depende.</p>
+          <div v-for="(relation, index) in form.relations" :key="index" class="card" style="padding: 12px; margin-bottom: 10px">
+            <div class="grid2">
+              <div class="fld">
+                <label :for="`relation-type-${index}`">Tipo</label>
+                <select :id="`relation-type-${index}`" v-model="relation.relationType" class="in">
+                  <option v-for="(label, type) in RELATION_TYPES" :key="type" :value="type">{{ label }}</option>
+                </select>
+              </div>
+              <div class="fld">
+                <label :for="`relation-target-${index}`">Proceso relacionado</label>
+                <select :id="`relation-target-${index}`" v-model.number="relation.targetProcessId" class="in">
+                  <option :value="0" disabled>Selecciona un proceso</option>
+                  <option v-for="option in relatedOptions" :key="option.id" :value="option.id">{{ option.code }} · {{ option.name }}</option>
+                </select>
+              </div>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: flex-end">
+              <div class="fld" style="flex: 1; margin-bottom: 0">
+                <label :for="`relation-description-${index}`">Información que se traspasa</label>
+                <input :id="`relation-description-${index}`" v-model="relation.description" class="in" maxlength="250" />
+              </div>
+              <button type="button" class="ibtn da" :aria-label="`Quitar relación ${index + 1}`" title="Quitar" @click="form.relations.splice(index, 1)">
+                <AppIcon name="trash" />
+              </button>
+            </div>
+          </div>
+          <p v-if="fieldErrors.relations" class="err" style="margin-bottom: 8px">{{ fieldErrors.relations }}</p>
+          <button type="button" class="btn sec sm" :disabled="form.relations.length >= 20" @click="addRelation"><AppIcon name="plus" size="sm" />Agregar relación</button>
+        </section>
         <div class="form-foot">
           <RouterLink class="btn sec" :to="{ name: 'manage-processes' }">Cancelar</RouterLink>
           <button class="btn" type="submit" :disabled="saving">{{ saving ? 'Guardando…' : 'Guardar proceso' }}</button>

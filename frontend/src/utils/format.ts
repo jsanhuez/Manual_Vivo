@@ -1,4 +1,4 @@
-import type { PersonRef, Progress, RoleName, StepStatus, VersionStatus } from '@/api/types';
+import type { PersonRef, Progress, RelationType, RoleName, StepStatus, VersionStatus } from '@/api/types';
 
 const dateFormat = new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' });
 const dateTimeFormat = new Intl.DateTimeFormat('es-CL', {
@@ -75,6 +75,11 @@ export function areaClass(name?: string | null): string {
   return match ? match[1] : 'a-gen';
 }
 
+// Mismo color del chip de área, para usarlo en el SVG del mapa
+export function areaColor(name?: string | null): string {
+  return `var(--${areaClass(name).slice(2)})`;
+}
+
 export function plural(count: number, singular: string, pluralForm: string): string {
   return `${count} ${count === 1 ? singular : pluralForm}`;
 }
@@ -82,6 +87,24 @@ export function plural(count: number, singular: string, pluralForm: string): str
 export function formatPct(value?: number | null): string {
   return `${(value ?? 0).toLocaleString('es-CL', { maximumFractionDigits: 1 })}%`;
 }
+
+export const RELATION_TYPES: Record<RelationType, string> = {
+  INFORMATION_HANDOFF: 'Traspaso de información',
+  TRIGGERS: 'Desencadena',
+  DEPENDS_ON: 'Depende de',
+};
+
+export const RELATION_OUT: Record<RelationType, string> = {
+  INFORMATION_HANDOFF: 'Entrega información a',
+  TRIGGERS: 'Desencadena',
+  DEPENDS_ON: 'Depende de',
+};
+
+export const RELATION_IN: Record<RelationType, string> = {
+  INFORMATION_HANDOFF: 'Recibe información de',
+  TRIGGERS: 'Es desencadenado por',
+  DEPENDS_ON: 'Es requerido por',
+};
 
 export const STEP_STATUS: Record<StepStatus, { label: string; chip: string }> = {
   READ: { label: 'Leído', chip: 'ok' },

@@ -1,6 +1,7 @@
 export type RoleName = 'COLLABORATOR' | 'EDITOR' | 'ADMIN';
 export type RecordStatus = 'ACTIVE' | 'ARCHIVED';
 export type VersionStatus = 'DRAFT' | 'IN_REVIEW' | 'PUBLISHED' | 'REJECTED';
+export type RelationType = 'INFORMATION_HANDOFF' | 'TRIGGERS' | 'DEPENDS_ON';
 export type StepStatus = 'READ' | 'UPDATED' | 'PENDING' | 'LOCKED';
 
 export interface NamedRef {
@@ -114,6 +115,18 @@ export interface CurrentVersionRef {
   publishedAt: string | null;
 }
 
+export interface RelatedProcess {
+  id: number;
+  relationType: RelationType;
+  description: string | null;
+  process: { id: number; code: string; name: string; area: NamedRef };
+}
+
+export interface ProcessRelations {
+  outgoing: RelatedProcess[];
+  incoming: RelatedProcess[];
+}
+
 export interface ProcessDetail extends ProcessSummary {
   visibleAreas: NamedRef[];
   procedures: {
@@ -124,7 +137,14 @@ export interface ProcessDetail extends ProcessSummary {
     accessLevel: LevelRef;
     currentVersion: CurrentVersionRef | null;
   }[];
+  relations: ProcessRelations;
   canManage: boolean;
+}
+
+export interface RelationForm {
+  targetProcessId: number;
+  relationType: RelationType;
+  description: string | null;
 }
 
 export interface ProcessForm {
@@ -137,6 +157,12 @@ export interface ProcessForm {
   accessLevelId: number;
   isCrossArea: boolean;
   visibleAreaIds: number[];
+  relations: RelationForm[];
+}
+
+export interface ProcessMap {
+  nodes: { id: number; code: string; name: string; isCrossArea: boolean; area: NamedRef; procedureCount: number }[];
+  edges: { id: number; sourceProcessId: number; targetProcessId: number; relationType: RelationType; description: string | null }[];
 }
 
 export interface ProcessEdit extends ProcessForm {
@@ -169,6 +195,7 @@ export interface ProcedureDetail {
   currentVersion: VersionWithContent | null;
   history: VersionSummary[];
   reading: { lastReadVersion: number | null; confirmedAt: string | null; currentConfirmed: boolean };
+  relations: ProcessRelations;
   canManage: boolean;
   workflow: VersionSummary[];
 }
@@ -335,6 +362,27 @@ export interface RouteProcedureOption {
   title: string;
   accessLevel: { name: string; level: number };
   process: { code: string; name: string; area: { name: string } };
+}
+
+export interface RouteProgressRow extends Progress {
+  routeId: number;
+  routeName: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  areaName: string;
+  assignedAt: string;
+  dueDate: string | null;
+}
+
+export interface CoverageRow {
+  procedureId: number;
+  code: string;
+  title: string;
+  versionNumber: number;
+  publishedAt: string;
+  audience: number;
+  confirmed: number;
 }
 
 export interface ReviewItem {
