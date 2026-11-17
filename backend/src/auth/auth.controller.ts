@@ -6,7 +6,7 @@ import { AuthService } from './auth.service';
 import { ForgotPasswordDto, LoginDto, ResetPasswordDto, TokenDto } from './dto/auth.dto';
 
 // Límite por IP que complementa el bloqueo por cuenta del servicio
-const AUTH_THROTTLE = { default: { limit: () => Number(process.env.AUTH_THROTTLE_LIMIT ?? 20), ttl: 60_000 } };
+const AUTH_THROTTLE = { default: { limit: () => Number(process.env.AUTH_THROTTLE_LIMIT), ttl: 60_000 } };
 
 @Controller('auth')
 export class AuthController {

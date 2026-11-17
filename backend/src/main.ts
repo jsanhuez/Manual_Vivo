@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
@@ -7,7 +8,7 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   configureApp(app);
   app.enableShutdownHooks();
-  await app.listen(Number(process.env.PORT ?? 3000), '0.0.0.0');
+  await app.listen(Number(app.get(ConfigService).getOrThrow<string>('PORT')), '0.0.0.0');
 }
 
 void bootstrap();

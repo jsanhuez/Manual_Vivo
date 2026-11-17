@@ -29,7 +29,7 @@ import { UsersModule } from './users/users.module';
     ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }),
     ThrottlerModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => [{ ttl: 60_000, limit: Number(config.get('THROTTLE_LIMIT') ?? 300) }],
+      useFactory: (config: ConfigService) => [{ ttl: 60_000, limit: Number(config.getOrThrow<string>('THROTTLE_LIMIT')) }],
     }),
     JwtModule.registerAsync({
       global: true,
