@@ -1,6 +1,6 @@
 {
   "name": "manual-vivo-web",
-  "version": "0.4.0",
+  "version": "1.0.0",
   "description": "Interfaz web de Manual Vivo",
   "private": true,
   "type": "module",

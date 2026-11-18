@@ -129,7 +129,7 @@ async function logout(): Promise<void> {
         </template>
         <button type="button" @click="logout"><AppIcon name="logout" />Cerrar sesión</button>
       </nav>
-      <div class="foot">Manual Vivo v0.4</div>
+      <div class="foot">Manual Vivo v1.0</div>
     </aside>
     <div class="backdrop" aria-hidden="true" @click="drawerOpen = false" />
 

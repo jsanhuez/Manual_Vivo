@@ -1,4 +1,4 @@
-const API_URL = `${(import.meta.env.VITE_API_URL ?? 'http://localhost:3000').replace(/\/$/, '')}/api`;
+const API_URL = `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/api`;
 
 export class ApiError extends Error {
   readonly status: number;
