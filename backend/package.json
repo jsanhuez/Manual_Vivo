@@ -17,6 +17,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "jest",
     "test:cov": "jest --coverage",
+    "test:load": "node --env-file=.env test/load.mjs",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db execute --file prisma/seed.sql --schema prisma/schema.prisma",
     "db:reset": "prisma migrate reset --force --skip-seed --skip-generate && npm run db:seed",
