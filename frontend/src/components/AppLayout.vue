@@ -161,7 +161,7 @@ async function logout(): Promise<void> {
             placeholder="Buscar procesos, procedimientos o palabras clave…"
           />
         </form>
-        <RouterLink v-if="session.user" class="who" :to="{ name: 'profile' }" aria-label="Ir a mi perfil">
+        <RouterLink v-if="session.user" class="who" :to="{ name: 'profile' }" title="Ir a mi perfil">
           <div class="av" :style="{ background: avatarColor }" aria-hidden="true">{{ initials(session.user) }}</div>
           <div>
             <div class="n">{{ fullName(session.user) }}</div>
