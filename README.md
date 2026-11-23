@@ -2,8 +2,6 @@
 
 Plataforma web de procesos, procedimientos y onboarding para una Empresa. Proyecto de Título de Ingeniería en Informática (IPLACEX, 2026).
 
-Estado: **Sprint 4 finalizado (09-11-2026)**. Incluye autenticación, cuentas, catálogos, procesos, procedimientos con versiones, consulta filtrada por permisos y búsqueda de texto completo.
-
 ## Author
 
 Juan Sanhueza R.
@@ -18,20 +16,6 @@ Juan Sanhueza R.
 | Datos | PostgreSQL 17 |
 | Despliegue | Render (Web Service con Docker y Static Site) |
 
-## Entorno y Usuarios de prueba
+## Entorno
 
 https://manual-vivo.onrender.com/
-
-Contraseña de las tres cuentas: `ManualVivo2026!`
-
-| Perfil | Correo | Área | Nivel |
-|---|---|---|---|
-| Administrador | valentina.soto@empresa.test | Administración y Finanzas | Restringido |
-| Editor | diego.munoz@empresa.test | Operaciones | Área |
-| Colaborador | ignacia.perez@empresa.test | Operaciones | General |
-
-Con el contenido semilla, Ignacia ve 3 procedimientos, Diego ve 4 y Valentina ve los 5.
-
-## Correo
-
-Render bloquea el envío por SMTP en el plan gratuito. Hasta definir un proveedor HTTPS (Sprint 6), los enlaces de invitación y de recuperación de contraseña se registran en el log de la API con el texto `Correo para`.
