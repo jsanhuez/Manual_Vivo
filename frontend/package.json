@@ -2,6 +2,7 @@
   "name": "manual-vivo-web",
   "version": "1.0.0",
   "description": "Interfaz web de Manual Vivo",
+  "author": "Juan Sanhueza",
   "private": true,
   "type": "module",
   "engines": {

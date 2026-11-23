@@ -2,6 +2,7 @@
   "name": "manual-vivo-api",
   "version": "1.0.0",
   "description": "API REST de Manual Vivo",
+  "author": "Juan Sanhueza",
   "private": true,
   "license": "UNLICENSED",
   "engines": {
